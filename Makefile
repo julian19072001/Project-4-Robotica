@@ -42,7 +42,7 @@ OBJLIST     := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(CPPLIST))) $(patsub
 OBJLIST2    := $(foreach file, $(OBJLIST), $(MAKEFOLDER)$(file))
 
 # Definieer alle tools met hun basisinstellingen
-TOOLCPP   = $(AVRFOLDER)avr-g++ $(CPPFLAGS) -Os -mmcu=$(MICROCONTROLLER)
+TOOLCPP   = $(AVRFOLDER)avr-gcc $(CPPFLAGS) -Os -mmcu=$(MICROCONTROLLER)
 TOOLCOPY  = $(AVRFOLDER)avr-objcopy
 TOOLSIZE  = $(AVRFOLDER)avr-size --format=avr --mcu=$(MICROCONTROLLER)
 TOOLDUMP  = $(AVRFOLDER)avr-objdump
