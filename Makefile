@@ -15,7 +15,7 @@ AVRFOLDER =
 # Folder waar avrdude staat (leeghouden indien door $Path o.a. avrdude vindbaar is)
 DUDEFOLDER = 
 # De (optionele) poort voor de AVR programmer (o.a. usb, /dev/tty.#)
-PORT = usb
+#PORT = usb
 # De fuse waardes: low, high, en extended
 # Zie http://www.engbedded.com/fusecalc/ voor andere microcontrollers en opties
 FUSELOW  = 
@@ -27,15 +27,15 @@ CPPFLAGS = -Wall
 # Externe bibliotheek folders van .c(pp) en .h(pp) bestanden
 EXTFOLDER = libraries/
 # Folder voor de broncode
-SRCFOLDER = 
+SRCFOLDER = Project-4-Robotica
 
 
 # Genereer lijst van include-folders
-INCLUDELIST := $(foreach dir, $(EXTFOLDER), -I$(dir))
+INCLUDELIST := $(foreach dir, $(SRCFOLDER)$(EXTFOLDER), -I$(dir))
 # Genereer lijst van broncode bestanden relatief tot de broncode-folder
 CPPLIST     := $(foreach file, $(wildcard $(SRCFOLDER)*.c $(SRCFOLDER)*.cpp), $(file))
 # Genereer lijst van bibliotheek .c(pp) bestanden
-EXTLIST     := $(foreach dir, $(EXTFOLDER), $(wildcard $(SRCFOLDER)$(dir)/*.c $(SRCFOLDER)$(dir)/*.cpp))
+EXTLIST     := $(foreach dir, $(SRCFOLDER)$(EXTFOLDER), $(wildcard $(SRCFOLDER)$(dir)/*.c $(SRCFOLDER)$(dir)/*.cpp))
 # Genereer lijst van o-bestanden
 OBJLIST     := $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(CPPLIST))) $(patsubst %.c, %.o, $(patsubst %.cpp, %.o, $(EXTLIST))) 
 # Genereer lijst van o-bestanden in de make(sub)folders
