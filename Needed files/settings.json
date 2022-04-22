@@ -1,0 +1,66 @@
+{
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}",
+        "C:/Program Files (x86)/Atmel/Studio/7.0/toolchain/avr8/avr8-gnu-toolchain/avr/include/**",
+        "C:/Program Files (x86)/Atmel/Studio/7.0/toolchain/avr8/avr8-gnu-toolchain/avr/include/util/**",
+        "C:/msys64/mingw64/cd/**",
+        "C:/msys64/mingw64/iup/**",
+        "C:/msys64/mingw64/cd/include/**",
+        "C:/msys64/mingw64/iup/include/**"
+    ],
+    "C_Cpp.default.defines": [
+        "__AVR_ATxmega256A3U__",
+        "__ATxmega256A3U__"
+    ],
+    "C_Cpp.default.compilerArgs": [
+        "-mmcu=atxmega256a3u",
+        "-o"
+    ],
+    "workbench.colorTheme": "Default Dark+",
+    "terminal.integrated.profiles.windows":{
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash"
+        },
+        "xMega": {
+            "path": "C:\\Program Files (x86)\\Atmel\\Studio\\7.0\\shellUtils\\make.exe",
+            "args": ["all --jobs 4 --output-sync"]
+        },
+
+        "MinGW64": {
+            "path": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": [
+                "--login",
+                "-i",
+            ]
+        }
+    },
+    "terminal.integrated.tabs.enabled": true,
+    
+    "terminal.integrated.env.windows": {
+        "MSYSTEM": "MINGW64",
+        "MSVSCODE": "1",
+        "CHERE_INVOKING": "1",
+    },
+"terminal.integrated.defaultProfile.windows": "MinGW64",
+"explorer.confirmDragAndDrop": false,
+"git.ignoreMissingGitWarning": true,
+"git.autofetch": true,
+"C_Cpp.default.compilerPath": "C:\\Program Files (x86)\\Atmel\\Studio\\7.0\\shellUtils\\make.exe",
+"git.enableSmartCommit": true,
+"git.confirmSync": false,
+"remote.SSH.remotePlatform": {
+    "robotica07.local": "linux"
+}
+}

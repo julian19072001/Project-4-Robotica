@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build and Flash",
+            "type": "shell",
+            "command": "",
+            "args": [
+                "make",
+                "flash"
+            ],
+            "group":  {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal":"always"
+            },
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "",
+            "args": [
+                "make",
+                "all"
+            ],
+            "group":  {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal":"always"
+            },
+        },
+        {
+            "label": "Test Connection",
+            "type": "shell",
+            "command": "",
+            "args": [
+                "make",
+                "test"
+            ],
+            "group":  {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal":"always"
+            },
+        }
+    ]
+}
