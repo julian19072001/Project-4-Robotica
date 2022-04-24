@@ -242,14 +242,17 @@ void init_Line_Follower(void)
 
 	PORTA.DIRCLR     = PIN1_bm|PIN3_bm|PIN4_bm|PIN6_bm;										//configure PA as input for ADCA
 
-	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA0 to channel 0
+	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA1 to channel 0
 	ADCA.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
-	ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA1 to channel 1
+	ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA4 to channel 1
 	ADCA.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
-	ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA5 to channel 2
+	ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA6 to channel 2
 	ADCA.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCA.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							//
 
@@ -265,15 +268,19 @@ void init_Line_Follower(void)
 
 	ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB0 to channel 0
 	ADCB.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB1 to channel 1
 	ADCB.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN5_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB5 to channel 2
 	ADCB.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB6 to channel 3
 	ADCB.CH3.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH3.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							//
 
@@ -288,12 +295,15 @@ void init_Line_Follower(void)
 	color_Line_Follower();																	//set the line follower color
 
 	EVSYS.CH0MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
+	EVSYS.CH1MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
+	EVSYS.CH2MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
+	EVSYS.CH3MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;															//turn on low level interrupts
 }
 
 void init_Timer(void)
 {
-  TCE0.PER      = 31249;     					// Tper =  8 * (3124 +1) / 32M = 0.025 s
+  TCE0.PER      = 999;     					// Tper =  8 * (3124 +1) / 32M = 0.025 s
   TCE0.CTRLA    = TC_CLKSEL_DIV256_gc;          // Prescaling 8
   TCE0.CTRLB    = TC_WGMODE_NORMAL_gc;        	// Normal mode
   TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	// Interrupt overflow off
