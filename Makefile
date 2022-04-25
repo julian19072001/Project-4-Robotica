@@ -27,7 +27,7 @@ CPPFLAGS = -Wall
 # Externe bibliotheek folders van .c(pp) en .h(pp) bestanden
 EXTFOLDER = libraries/
 # Folder voor de broncode
-SRCFOLDER = Project-4-Robotica/
+SRCFOLDER =
 
 
 # Genereer lijst van include-folders
