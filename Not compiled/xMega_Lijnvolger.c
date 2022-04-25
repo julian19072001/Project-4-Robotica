@@ -29,18 +29,15 @@ int main(void)
 
 	while (1) 
 	{	
-    int16_t fin_res_d75 = control_Result(&res_d75);
-    int16_t fin_res_d72 = control_Result(&res_d72);
-    int16_t fin_res_d69 = control_Result(&res_d69);
-    int16_t fin_res_d66 = control_Result(&res_d66);
-    int16_t fin_res_d63 = control_Result(&res_d63);
-    int16_t fin_res_d60 = control_Result(&res_d60);
-    int16_t fin_res_d57 = control_Result(&res_d57);
+        int16_t fin_res_d75 = control_Result(&res_d75);
+        int16_t fin_res_d72 = control_Result(&res_d72);
+        int16_t fin_res_d69 = control_Result(&res_d69);
+        int16_t fin_res_d66 = control_Result(&res_d66);
+        int16_t fin_res_d63 = control_Result(&res_d63);
+        int16_t fin_res_d60 = control_Result(&res_d60);
+        int16_t fin_res_d57 = control_Result(&res_d57);
     
-		printf("\n");
-		printf("%5d | %5d | %5d | %5d | %5d | %5d | %5d", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
-		printf("\n");
-		_delay_ms(100);
+        printf("%d|%d|%d|%d|%d|%d|%d", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
 	}
 }
 
