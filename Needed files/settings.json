@@ -42,7 +42,7 @@
             "path": "C:\\msys64\\usr\\bin\\bash.exe",
             "args": [
                 "--login",
-                "-i",
+                "-i"
             ]
         }
     },
@@ -51,7 +51,7 @@
     "terminal.integrated.env.windows": {
         "MSYSTEM": "MINGW64",
         "MSVSCODE": "1",
-        "CHERE_INVOKING": "1",
+        "CHERE_INVOKING": "1"
     },
 "terminal.integrated.defaultProfile.windows": "MinGW64",
 "explorer.confirmDragAndDrop": false,

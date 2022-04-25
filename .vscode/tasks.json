@@ -15,7 +15,7 @@
             },
             "presentation": {
                 "reveal":"always"
-            }
+            },
         },
         {
             "label": "Build",
@@ -31,7 +31,7 @@
             },
             "presentation": {
                 "reveal":"always"
-            }
+            },
         },
         {
             "label": "Test Connection",
@@ -47,7 +47,7 @@
             },
             "presentation": {
                 "reveal":"always"
-            }
+            },
         }
     ]
 }
