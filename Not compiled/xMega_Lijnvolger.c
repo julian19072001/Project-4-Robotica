@@ -29,18 +29,15 @@ int main(void)
 
 	while (1) 
 	{	
-    int16_t fin_res_d75 = control_Result(&res_d75);
-    int16_t fin_res_d72 = control_Result(&res_d72);
-    int16_t fin_res_d69 = control_Result(&res_d69);
-    int16_t fin_res_d66 = control_Result(&res_d66);
-    int16_t fin_res_d63 = control_Result(&res_d63);
-    int16_t fin_res_d60 = control_Result(&res_d60);
-    int16_t fin_res_d57 = control_Result(&res_d57);
+        int16_t fin_res_d75 = control_Result(&res_d75);
+        int16_t fin_res_d72 = control_Result(&res_d72);
+        int16_t fin_res_d69 = control_Result(&res_d69);
+        int16_t fin_res_d66 = control_Result(&res_d66);
+        int16_t fin_res_d63 = control_Result(&res_d63);
+        int16_t fin_res_d60 = control_Result(&res_d60);
+        int16_t fin_res_d57 = control_Result(&res_d57);
     
-		printf("\n");
-		printf("%5d | %5d | %5d | %5d | %5d | %5d | %5d", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
-		printf("\n");
-		_delay_ms(100);
+        printf(" %d %d %d %d %d %d %d\n", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
 	}
 }
 
@@ -239,7 +236,7 @@ void init_Line_Follower(void)
 	PORTE_OUTSET = PIN3_bm;		// BLANK high
 	
 	// 96 pulses on SCLK
-	for (uint8_t i = 0; i < 96; i++) 
+	for (int i = 0; i < 96; i++) 
 	{
 		PORTE_OUTSET = PIN5_bm;
 		PORTE_OUTCLR = PIN5_bm;
@@ -322,7 +319,7 @@ void init_Timer(void)
 
 void color_Line_Follower(void)
 {
-	for (uint8_t i = 0; i < 96; i++) 
+	for (int i = 0; i < 96; i++) 
 	{
 		if (led_out_blue[i] == 1) PORTE_OUTSET = PIN7_bm;
 		else PORTE_OUTCLR = PIN7_bm;
