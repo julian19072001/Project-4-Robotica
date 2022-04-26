@@ -324,7 +324,7 @@ void color_Line_Follower(void)
 {
 	for (int i = 0; i < 96; i++) 
 	{
-		if (led_out_blue[i] == 1) PORTE_OUTSET = PIN7_bm;
+		if (led_out_white[i] == 1) PORTE_OUTSET = PIN7_bm;
 		else PORTE_OUTCLR = PIN7_bm;
 		
 		PORTE_OUTSET = PIN5_bm;
