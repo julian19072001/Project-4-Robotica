@@ -228,7 +228,7 @@ void init_Line_Follower(void)
 	PORTE_OUTSET = PIN3_bm;		// BLANK high
 	
 	// 96 pulses on SCLK
-	for (int i = 0; i < 96; i++) 
+	for (uint8_t i = 0; i < 96; i++) 
 	{
 		PORTE_OUTSET = PIN5_bm;
 		PORTE_OUTCLR = PIN5_bm;
@@ -311,7 +311,7 @@ void init_Timer(void)
 
 void color_Line_Follower(void)
 {
-	for (int i = 0; i < 96; i++) 
+	for (uint8_t i = 0; i < 96; i++) 
 	{
 		if (led_out_blue[i] == 1) PORTE_OUTSET = PIN7_bm;
 		else PORTE_OUTCLR = PIN7_bm;
