@@ -37,7 +37,7 @@ int main(void)
         int16_t fin_res_d60 = control_Result(&res_d60);
         int16_t fin_res_d57 = control_Result(&res_d57);
     
-        printf("%d|%d|%d|%d|%d|%d|%d", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
+        printf(" %d %d %d %d %d %d %d\n", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
 	}
 }
 
