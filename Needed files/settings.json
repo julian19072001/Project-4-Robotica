@@ -6,7 +6,8 @@
         "C:/msys64/mingw64/cd/**",
         "C:/msys64/mingw64/iup/**",
         "C:/msys64/mingw64/cd/include/**",
-        "C:/msys64/mingw64/iup/include/**"
+        "C:/msys64/mingw64/iup/include/**",
+        "C:/msys64/mingw64/avr/include/**"
     ],
     "C_Cpp.default.defines": [
         "__AVR_ATxmega256A3U__",
