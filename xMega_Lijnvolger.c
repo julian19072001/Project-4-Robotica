@@ -38,6 +38,7 @@ int main(void)
         int16_t fin_res_d57 = control_Result(&res_d57);
     
         printf(" %d %d %d %d %d %d %d\n", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
+        _delay_ms(1);
 	}
 }
 
@@ -48,7 +49,7 @@ ISR(ADCA_CH0_vect)
   static int16_t sum_d75 = 0;
 
   if(n_d75 & 0x01) 
-  {                  		//second (even) measurement
+  {                  		    //second (even) measurement
     sum_d75 -= ADCA.CH0.RES;
     ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
@@ -100,7 +101,7 @@ ISR(ADCA_CH2_vect)
   static int16_t sum_d69 = 0;
 
   if(n_d69 & 0x01) 
-  {                  		//second (even) measurement
+  {                  		    //second (even) measurement
     sum_d69 -= ADCA.CH2.RES;
     ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
@@ -321,7 +322,7 @@ void color_Line_Follower(void)
 {
 	for (int i = 0; i < 96; i++) 
 	{
-		if (led_out_blue[i] == 1) PORTE_OUTSET = PIN7_bm;
+		if (led_out_red[i] == 1) PORTE_OUTSET = PIN7_bm;
 		else PORTE_OUTCLR = PIN7_bm;
 		
 		PORTE_OUTSET = PIN5_bm;
