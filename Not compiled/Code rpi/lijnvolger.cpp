@@ -15,7 +15,7 @@
 #define COMPORT 24
 #define AANTAL_WAARDES 7
 
-#define MOTOR_LEFT      PORT3_MD
+#define MOTOR_LEFT      PORT5_MB
 #define MOTOR_RIGHT     PORT6_MA
 #define MAX_SPEED       500
 
@@ -45,8 +45,8 @@ int main(int nArgc, char* aArgv[])
   { 
     if (!commIsOpen) 
     {
-    printf("Can not open COM %d\nExit Program\n", COMPORT);
-    exit(-2);
+      printf("Can not open COM %d\nExit Program\n", COMPORT);
+      exit(-2);
     }
 
     if(commIsOpen)
@@ -60,18 +60,19 @@ int main(int nArgc, char* aArgv[])
       else if(regelResult == INVALIDDATA) printf("Error\n Data niet goed ontvangen!\n");
       
     }
-  };
-};
+  }
+}
 
 // Signal handler that will be called when Ctrl+C is pressed to stop the program
 void exit_signal_handler(int signo) {
 
-  if (signo == SIGINT) {
+  if (signo == SIGINT) 
+  {
     oLego.reset_all();
     printf("\nThe LEGO RPi example has stopped\n\n");
     exit(-2);
   }
-};
+}
 
 int GetNewXMegaData(int *data_Location, int data_Size) {
   static char sCommBuf[BUFSZ];
@@ -121,7 +122,7 @@ int GetNewXMegaData(int *data_Location, int data_Size) {
     return VALIDDATA;
   else
     return INVALIDDATA;
-};
+}
 
 void rij(int* data_Location)
 {
