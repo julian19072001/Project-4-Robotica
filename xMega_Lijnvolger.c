@@ -314,7 +314,7 @@ void init_Line_Follower(void)
 
   _delay_ms(10);
   
-  get_Zero();
+
   color_Line_Follower();
 }
 
