@@ -1,10 +1,11 @@
-//g++ -Wall -o COM test_COM.cpp ~/hva_libraries/legorpi/*.cpp -I/home/piuser/hva_libraries/legorpi ~/hva_libraries/legorpi/*.c
+//g++ -Wall -o lijn lijnvolger.cpp ~/hva_libraries/legorpi/*.cpp -I/home/piuser/hva_libraries/legorpi ~/hva_libraries/legorpi/*.c
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <rs232.h>
+#include <legorpi.hpp>
 
 #define BUFSZ 4096
 #define NODATA 0
@@ -14,20 +15,24 @@
 #define COMPORT 24
 #define AANTAL_WAARDES 7
 
-#define MOTOR_LEFT      PORT4_MC
-#define MOTOR_RIGHT     PORT5_MB
-#define MAX_SPEED       250
-#define MAX_DIFFERENCE
+#define MOTOR_LEFT      PORT3_MD
+#define MOTOR_RIGHT     PORT6_MA
+#define MAX_SPEED       500
+
+#define SETPOINT    0       // The goal for readLine (center)
+#define KP          0.028   // The P value in PID
+#define KD          3       // The D value in PID
 
 //Create a BrickPi3 instance with the default address of 1
 BrickPi3 oLego;
+int lastError = 0;
 
 //Method to catch the CTRL+C signal.
 void exit_signal_handler(int signo);
 
 //Get new data form the xMega
 int GetNewXMegaData(int *data_Location, int data_Size);
-void rij(int16_t* data_Location);
+void rij(int* data_Location);
 
 // Start of the program
 int main(int nArgc, char* aArgv[]) {
@@ -37,7 +42,7 @@ int main(int nArgc, char* aArgv[]) {
   // Make sure that the BrickPi3 is communicating and the firmware is working as expected.
   oLego.isDetected();
   
-  int16_t waarde[AANTAL_WAARDES];
+  int waarde[AANTAL_WAARDES];
   int commIsOpen = 0;
 
   commIsOpen = !RS232_OpenComport(COMPORT, 115200, "8N1", 0);
@@ -116,20 +121,24 @@ int GetNewXMegaData(int *data_Location, int data_Size) {
     return VALIDDATA;
   else
     return INVALIDDATA;
-}
+};
 
-void rij(int16_t* data_Location)
+void rij(int* data_Location)
 {
-    static float motor_modifier = MAX_SPEED / MAX_DIFFERENCE;
-    int16_t center_cal = waarde[2] - waarde[4];
-    if(center_cal > 0)
-    {
-        oLego.set_motor_dps(MOTOR_RIGHT, MAX_SPEED);
-        oLego.set_motor_dps(MOTOR_LEFT, (MAX_SPEED - (motor_modifier * center_cal)));
-    }
-    else if(center_cal < 0)
-    {
-        oLego.set_motor_dps(MOTOR_LEFT, MAX_SPEED);
-        oLego.set_motor_dps(MOTOR_RIGHT, (MAX_SPEED - (motor_modifier * center_cal)));
-    }
+    //float center_cal = ((/*data_Location[0] + */data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5] /*+ data_Location[6]*/));
+    // Take a reading
+    unsigned int linePos = ((/*data_Location[0] + */data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5] /*+ data_Location[6]*/));
+ 
+    // Compute the error
+    int error = SETPOINT - linePos;
+ 
+    // Compute the motor adjustment
+    int adjust = error*KP + KD*(error - lastError);
+ 
+    // Record the current error for the next iteration
+    lastError = error;
+ 
+    // Adjust motors, one negatively and one positively
+    oLego.set_motor_dps(MOTOR_RIGHT, MAX_SPEED + adjust);
+    oLego.set_motor_dps(MOTOR_LEFT, MAX_SPEED - adjust);
 }

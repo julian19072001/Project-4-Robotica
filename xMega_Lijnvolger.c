@@ -10,17 +10,32 @@
 #define SAMPLES 8                     //number of samples used to create an average
 #define SAMPLE_DELAY 1                //time in milliseconds between samples
 
-volatile int16_t res_d75, res_d72, res_d69, res_d66, res_d63, res_d60, res_d57;
+typedef struct measurements
+{
+  volatile int d75;
+  volatile int d72;
+  volatile int d69;
+  volatile int d66;
+  volatile int d63;
+  volatile int d60;
+  volatile int d57;
+}
+measurements_t;
+
+measurements_t result;
+measurements_t zero;
 
 void init_Line_Follower(void);
 void init_Timer(void);
 void color_Line_Follower(void);
+void line_Follower_Off(void);
+void get_Zero(void);
 
 int16_t control_Result(volatile int16_t* result);
 
 int main(void) 
 {
-	init_Line_Follower();
+  init_Line_Follower();
 	init_Timer();
 	init_clock();
 	init_stream(F_CPU);
@@ -29,13 +44,13 @@ int main(void)
 
 	while (1) 
 	{	
-        int16_t fin_res_d75 = control_Result(&res_d75);
-        int16_t fin_res_d72 = control_Result(&res_d72);
-        int16_t fin_res_d69 = control_Result(&res_d69);
-        int16_t fin_res_d66 = control_Result(&res_d66);
-        int16_t fin_res_d63 = control_Result(&res_d63);
-        int16_t fin_res_d60 = control_Result(&res_d60);
-        int16_t fin_res_d57 = control_Result(&res_d57);
+        int16_t fin_res_d75 = control_Result(&result.d75);
+        int16_t fin_res_d72 = control_Result(&result.d72);
+        int16_t fin_res_d69 = control_Result(&result.d69);
+        int16_t fin_res_d66 = control_Result(&result.d66);
+        int16_t fin_res_d63 = control_Result(&result.d63);
+        int16_t fin_res_d60 = control_Result(&result.d60);
+        int16_t fin_res_d57 = control_Result(&result.d57);
     
         printf(" %d %d %d %d %d %d %d\n", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
         _delay_ms(1);
@@ -62,7 +77,7 @@ ISR(ADCA_CH0_vect)
   n_d75++;
   if(n_d75 == SAMPLES) 
   {							//if eight measurement have been made safe it as a result
-    res_d75 = sum_d75/SAMPLES;
+    result.d75 = sum_d75/SAMPLES;
     sum_d75 = 0;
     n_d75 = 0;
   }
@@ -88,7 +103,7 @@ ISR(ADCA_CH1_vect)
   n_d72++;
   if(n_d72 == SAMPLES)
   {							//if eight measurement have been made safe it as a result
-    res_d72 = sum_d72/SAMPLES;
+    result.d72 = sum_d72/SAMPLES;
     sum_d72 = 0;
     n_d72 = 0;
   }
@@ -114,7 +129,7 @@ ISR(ADCA_CH2_vect)
   n_d69++;
   if (n_d69 == SAMPLES) 
   {							//if eight measurement have been made safe it as a result
-    res_d69 = sum_d69/SAMPLES;
+    result.d69 = sum_d69/SAMPLES;
     sum_d69 = 0;
     n_d69 = 0;
   }
@@ -128,19 +143,19 @@ ISR(ADCB_CH0_vect)
 
   if(n_d66 & 0x01) 
   {                  		//second (even) measurement
-    sum_d66 -= ADCB.CH0.RES;
+    result.d66 -= ADCB.CH0.RES;
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d66 += ADCB.CH0.RES;
+    result.d66 += ADCB.CH0.RES;
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN0_gc;
   }
 
   n_d66++;
   if(n_d66 == SAMPLES) 
   {							//if eight measurement have been made safe it as a result
-    res_d66 = sum_d66/SAMPLES;
+    result.d66 = sum_d66/SAMPLES;
     sum_d66 = 0;
     n_d66 = 0;
   }
@@ -166,7 +181,7 @@ ISR(ADCB_CH1_vect)
   n_d63++;
   if(n_d63 == SAMPLES)
   {							//if eight measurement have been made safe it as a result
-    res_d63 = sum_d63/SAMPLES;
+    result.d63 = sum_d63/SAMPLES;
     sum_d63 = 0;
     n_d63 = 0;
   }
@@ -192,7 +207,7 @@ ISR(ADCB_CH2_vect)
   n_d60++;
   if (n_d60 == SAMPLES) 
   {							//if eight measurement have been made safe it as a result
-    res_d60 = sum_d60/SAMPLES;
+    result.d60 = sum_d60/SAMPLES;
     sum_d60 = 0;
     n_d60 = 0;
   }
@@ -219,7 +234,7 @@ ISR(ADCB_CH3_vect)
   n_d57++;
   if (n_d57 == SAMPLES) 
   {							//if eight measurement have been made safe it as a result
-    res_d57 = sum_d57/SAMPLES;
+    result.d57 = sum_d57/SAMPLES;
     sum_d57 = 0;
     n_d57 = 0;
   }
@@ -232,20 +247,8 @@ void init_Line_Follower(void)
 	PORTE_DIRSET = PIN5_bm;		// SCLK
 	PORTE_DIRSET = PIN4_bm;		// LAT
 	PORTE_DIRSET = PIN3_bm;		// BLANK
-	
-	PORTE_OUTCLR = PIN7_bm;		// SIN low
-	PORTE_OUTSET = PIN3_bm;		// BLANK high
-	
-	// 96 pulses on SCLK
-	for (int i = 0; i < 96; i++) 
-	{
-		PORTE_OUTSET = PIN5_bm;
-		PORTE_OUTCLR = PIN5_bm;
-	}
-	
-	// 1 puls op LAT
-	PORTE_OUTSET = PIN4_bm;
-	PORTE_OUTCLR = PIN4_bm;
+
+  line_Follower_Off();
 	
 	////////////////////////////////////////
 
@@ -301,13 +304,18 @@ void init_Line_Follower(void)
 
 	////////////////////////////////////////
 
-	color_Line_Follower();																	        //set the line follower color
-
 	EVSYS.CH0MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH1MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH2MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH3MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;															      //turn on low level interrupts
+
+  ////////////////////////////////////////
+
+  _delay_ms(10);
+  
+  get_Zero();
+  color_Line_Follower();
 }
 
 void init_Timer(void)
@@ -316,6 +324,36 @@ void init_Timer(void)
   TCE0.CTRLA    = TC_CLKSEL_DIV256_gc;                            //Prescaling 256
   TCE0.CTRLB    = TC_WGMODE_NORMAL_gc;          	                //Normal mode
   TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	                  //Interrupt overflow off
+}
+
+void get_Zero(void)
+{
+  line_Follower_Off();
+
+  zero.d75 = control_Result(&result.d75);
+  zero.d72 = control_Result(&result.d72);
+  zero.d69 = control_Result(&result.d69);
+  zero.d66 = control_Result(&result.d66);
+  zero.d63 = control_Result(&result.d63);
+  zero.d60 = control_Result(&result.d60);
+  zero.d57 = control_Result(&result.d57);
+}
+
+void line_Follower_Off(void)
+{
+  PORTE_OUTCLR = PIN7_bm;		// SIN low
+	PORTE_OUTSET = PIN3_bm;		// BLANK high
+
+  // 96 pulses on SCLK
+	for (int i = 0; i < 96; i++) 
+	{
+		PORTE_OUTSET = PIN5_bm;
+		PORTE_OUTCLR = PIN5_bm;
+	}
+	
+	// 1 puls op LAT
+	PORTE_OUTSET = PIN4_bm;
+	PORTE_OUTCLR = PIN4_bm;
 }
 
 void color_Line_Follower(void)
