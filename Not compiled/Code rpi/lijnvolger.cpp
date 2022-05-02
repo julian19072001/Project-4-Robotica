@@ -1,11 +1,11 @@
 //g++ -Wall -o lijn lijnvolger.cpp ~/hva_libraries/legorpi/*.cpp -I/home/piuser/hva_libraries/legorpi ~/hva_libraries/legorpi/*.c
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
-#include <rs232.h>
-#include <legorpi.hpp>
+#include "rs232.h"
 
 #define BUFSZ 4096
 #define NODATA 0
@@ -23,13 +23,13 @@
 #define KP          0.028   // The P value in PID
 #define KD          3       // The D value in PID
 
-BrickPi3 oLego;
-
-static int lastError = 0;
+#define MIN_LINE_CHANGE 200
+#define LINE_SAMPLES 20
 
 void exit_signal_handler(int signo);
 int GetNewXMegaData(int *data_Location, int data_Size);
 void rij(int* data_Location);
+int check_Line_Status(int* data_Location);
 
 int main(int nArgc, char* aArgv[]) 
 {
@@ -41,6 +41,18 @@ int main(int nArgc, char* aArgv[])
   int commIsOpen = 0;
 
   commIsOpen = !RS232_OpenComport(COMPORT, 115200, "8N1", 0);
+  sleep(1);
+  int bende;
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  bende = GetNewXMegaData(waarde, AANTAL_WAARDES);
+  
   while(1) 
   { 
     if (!commIsOpen) 
@@ -48,14 +60,61 @@ int main(int nArgc, char* aArgv[])
       printf("Can not open COM %d\nExit Program\n", COMPORT);
       exit(-2);
     }
-
     if(commIsOpen)
     {
       int regelResult = GetNewXMegaData(waarde, AANTAL_WAARDES);
-      
       if(regelResult == VALIDDATA) 
       {
-        rij(waarde);
+          int road = get_Road_Information(waarde, LINE_SAMPLES, MIN_LINE_CHANGE);
+          switch(road)
+          {
+            case LINE:
+            follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            break;
+
+            case CROSS:
+            printf("Kruising");
+            follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            break;
+
+            case SPLIT:
+            printf("Splitsing");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            oLego.reset_all();
+            exit(-2)
+            break;
+
+            case LEFT_TURN:
+            printf("Bocht links");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            oLego.reset_all();
+            exit(-2)
+            break;
+
+            case RIGHT_TURN:
+            printf("Bocht rechts");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            oLego.reset_all();
+            exit(-2)
+            break;
+
+            case NO_LINE:
+            printf("Geen lijn");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            oLego.reset_all();
+            exit(-2)
+            break;
+
+            case OPTION_LEFT:
+            printf("Splitsing links");
+            follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            break;
+
+            case OPTION_RIGHT:
+            printf("Splitsing rechts");
+            follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            break;
+          }
       } 
       else if(regelResult == INVALIDDATA) printf("Error\n Data niet goed ontvangen!\n");
       
@@ -116,22 +175,7 @@ int GetNewXMegaData(int *data_Location, int data_Size) {
   } 
   while(bytesRead > 0 && lineRead == 0 && valid == 1);
 
-  if(bytesRead == 0)
-    return NODATA;
-  else if(lineRead == 1)
-    return VALIDDATA;
-  else
-    return INVALIDDATA;
-}
-
-void rij(int* data_Location)
-{
-    unsigned int linePos = ((data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5]));
-    int error = SETPOINT - linePos;
-    int adjust = error*KP + KD*(error - lastError);
- 
-    lastError = error;
-
-    oLego.set_motor_dps(MOTOR_RIGHT, MAX_SPEED + adjust);
-    oLego.set_motor_dps(MOTOR_LEFT, MAX_SPEED - adjust);
+  if(bytesRead == 0)      return NODATA;
+  else if(lineRead == 1)  return VALIDDATA;
+  else                    return INVALIDDATA;
 }

@@ -22,8 +22,8 @@ typedef struct measurements
 }
 measurements_t;
 
-measurements_t result;
-measurements_t zero;
+static measurements_t result;
+static measurements_t zero;
 
 void init_Line_Follower(void);
 void init_Timer(void);
@@ -44,16 +44,17 @@ int main(void)
 
 	while (1) 
 	{	
-        int16_t fin_res_d75 = control_Result(&result.d75);
-        int16_t fin_res_d72 = control_Result(&result.d72);
-        int16_t fin_res_d69 = control_Result(&result.d69);
-        int16_t fin_res_d66 = control_Result(&result.d66);
-        int16_t fin_res_d63 = control_Result(&result.d63);
-        int16_t fin_res_d60 = control_Result(&result.d60);
-        int16_t fin_res_d57 = control_Result(&result.d57);
+    measurements_t final;
+    final.d75 = control_Result(&result.d75) - zero.d75;
+    final.d72 = control_Result(&result.d72) - zero.d72;
+    final.d69 = control_Result(&result.d69) - zero.d69;
+    final.d66 = control_Result(&result.d66) - zero.d66;
+    final.d63 = control_Result(&result.d63) - zero.d63;
+    final.d60 = control_Result(&result.d60) - zero.d60;
+    final.d57 = control_Result(&result.d57) - zero.d57;
     
-        printf(" %d %d %d %d %d %d %d\n", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
-        _delay_ms(1);
+    printf(" %d %d %d %d %d %d %d\n", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
+    _delay_ms(1);
 	}
 }
 
@@ -141,14 +142,15 @@ ISR(ADCB_CH0_vect)
   static uint8_t n_d66 = 0;
   static int16_t sum_d66 = 0;	
 
+
   if(n_d66 & 0x01) 
   {                  		//second (even) measurement
-    result.d66 -= ADCB.CH0.RES;
+    sum_d66 -= ADCB.CH0.RES;
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    result.d66 += ADCB.CH0.RES;
+    sum_d66 += ADCB.CH0.RES;
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN0_gc;
   }
 
@@ -314,7 +316,7 @@ void init_Line_Follower(void)
 
   _delay_ms(10);
   
-
+  get_Zero();
   color_Line_Follower();
 }
 
