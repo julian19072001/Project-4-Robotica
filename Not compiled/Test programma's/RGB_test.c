@@ -7,16 +7,13 @@
 #include "clock.h"
 #include "Kleur_arrays.h"
 
-#define SAMPLES 8                     //number of samples used to create an average
-#define SAMPLE_DELAY 1                //time in milliseconds between samples
+#define SAMPLES 8
 
-volatile int16_t res_d75, res_d72, res_d69, res_d66, res_d63, res_d60, res_d57;
+static volatile int16_t res_d75, res_d72, res_d69, res_d66, res_d63, res_d60, res_d57;
 
 void init_Line_Follower(void);
 void init_Timer(void);
 void color_Line_Follower(void);
-
-int16_t control_Result(volatile int16_t* result);
 
 int main(void) 
 {
@@ -28,17 +25,10 @@ int main(void)
 	sei(); 
 
 	while (1) 
-	{	
-    int16_t fin_res_d75 = control_Result(&res_d75);
-    int16_t fin_res_d72 = control_Result(&res_d72);
-    int16_t fin_res_d69 = control_Result(&res_d69);
-    int16_t fin_res_d66 = control_Result(&res_d66);
-    int16_t fin_res_d63 = control_Result(&res_d63);
-    int16_t fin_res_d60 = control_Result(&res_d60);
-    int16_t fin_res_d57 = control_Result(&res_d57);
-    
+	{
+		
 		printf("\n");
-		printf("%5d | %5d | %5d | %5d | %5d | %5d | %5d", fin_res_d75, fin_res_d72, fin_res_d69, fin_res_d66, fin_res_d63, fin_res_d60, fin_res_d57);
+		printf("%5d | %5d | %5d | %5d | %5d | %5d | %5d", res_d75, res_d72, res_d69, res_d66, res_d63, res_d60, res_d57);
 		printf("\n");
 		_delay_ms(100);
 	}
@@ -155,7 +145,7 @@ ISR(ADCB_CH1_vect)
   static int16_t sum_d63 = 0;
 
   if(n_d63 & 0x01) 
-  {                  		    //second (even) measurement
+  {                  		//second (even) measurement
     sum_d63 -= ADCB.CH1.RES;
     ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
@@ -205,9 +195,9 @@ ISR(ADCB_CH3_vect)
 {
   static uint8_t n_d57 = 0;
   static int16_t sum_d57 = 0;
-/*
+
   if(n_d57 & 0x01) 
-  {                  		    //second (even) measurement
+  {                  		//second (even) measurement
     sum_d57 -= ADCB.CH3.RES;
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
@@ -215,8 +205,7 @@ ISR(ADCB_CH3_vect)
   {                         //first (odd) measurement
     sum_d57 += ADCB.CH3.RES;
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN7_gc;
-  }*/
-  sum_d57 += ADCB.CH3.RES;
+  }
 
   n_d57++;
   if (n_d57 == SAMPLES) 
@@ -251,80 +240,80 @@ void init_Line_Follower(void)
 	
 	////////////////////////////////////////
 
-	PORTA.DIRCLR     = PIN1_bm|PIN3_bm|PIN4_bm|PIN6_bm;										      //configure PA as input for ADCA
+	PORTA.DIRCLR     = PIN1_bm|PIN3_bm|PIN4_bm|PIN6_bm;										//configure PA as input for ADCA
 
 	ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA1 to channel 0
-	ADCA.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCA.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCA.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA4 to channel 1
-	ADCA.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCA.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCA.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;						//PA6 to channel 2
-	ADCA.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCA.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCA.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCA.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
-	ADCA.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							
+	ADCA.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							//
 
-	ADCA.REFCTRL     = ADC_REFSEL_INTVCC2_gc;												            //internal vcc/2 refernce
-	ADCA.PRESCALER   = ADC_PRESCALER_DIV16_gc;												          //prescaling
-	ADCA.CTRLA       = ADC_ENABLE_bm;														                //enable ADC
+	ADCA.REFCTRL     = ADC_REFSEL_INTVCC2_gc;												//internal vcc/2 refernce
+	ADCA.PRESCALER   = ADC_PRESCALER_DIV16_gc;												//prescaling
+	ADCA.CTRLA       = ADC_ENABLE_bm;														//enable ADC
 
-	ADCA.EVCTRL		 = ADC_SWEEP_012_gc | ADC_EVSEL_0123_gc | ADC_EVACT_CH012_gc; //Sweep CH0,1,2; select event CH0,1,2,3; event triggers ADC CH0,1,2
+	ADCA.EVCTRL		 = ADC_SWEEP_012_gc | ADC_EVSEL_0123_gc | ADC_EVACT_CH012_gc;			//Sweep CH0,1,2; select event CH0,1,2,3; event triggers ADC CH0,1,2
 
 	////////////////////////////////////////
 
-	PORTB.DIRCLR     = PIN0_bm|PIN2_bm|PIN3_bm|PIN5_bm|PIN7_bm;								  //configure PB as input for ADCB
+	PORTB.DIRCLR     = PIN0_bm|PIN2_bm|PIN3_bm|PIN5_bm|PIN7_bm;								//configure PB as input for ADCB
 
 	ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB0 to channel 0
-	ADCB.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCB.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCB.CH0.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB1 to channel 1
-	ADCB.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCB.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;												    	        //Interrupt on low level interrupts
+	ADCB.CH1.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN5_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB5 to channel 2
-	ADCB.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCB.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCB.CH2.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
 	ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc | ADC_CH_MUXNEG_PIN3_gc;						//PB6 to channel 3
-	ADCB.CH3.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											          //differential, no gain
-	ADCB.CH3.INTCTRL = ADC_CH_INTLVL_LO_gc;													            //Interrupt on low level interrupts
+	ADCB.CH3.CTRL    = ADC_CH_INPUTMODE_DIFF_gc;											//differential, no gain
+	ADCB.CH3.INTCTRL = ADC_CH_INTLVL_LO_gc;													//Interrupt on low level interrupts
 
-	ADCB.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							  //
+	ADCB.CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							//
 
-	ADCB.REFCTRL     = ADC_REFSEL_INTVCC2_gc;												            //internal vcc/2 refernce
-	ADCB.PRESCALER   = ADC_PRESCALER_DIV16_gc;												          //prescaling
-	ADCB.CTRLA       = ADC_ENABLE_bm;														                //enable ADC
+	ADCB.REFCTRL     = ADC_REFSEL_INTVCC2_gc;												//internal vcc/2 refernce
+	ADCB.PRESCALER   = ADC_PRESCALER_DIV16_gc;												//prescaling
+	ADCB.CTRLA       = ADC_ENABLE_bm;														//enable ADC
 
-	ADCB.EVCTRL		   = ADC_SWEEP_0123_gc | ADC_EVSEL_0123_gc | ADC_EVACT_CH0123_gc;			//Sweep CH0,1,2,3; select event CH0,1,2,3; event triggers ADC CH0,1,2,3
+	ADCB.EVCTRL		 = ADC_SWEEP_0123_gc | ADC_EVSEL_0123_gc | ADC_EVACT_CH0123_gc;			//Sweep CH0,1,2,3; select event CH0,1,2,3; event triggers ADC CH0,1,2,3
 
 	////////////////////////////////////////
 
-	color_Line_Follower();																	        //set the line follower color
+	color_Line_Follower();																	//set the line follower color
 
 	EVSYS.CH0MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH1MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH2MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
 	EVSYS.CH3MUX	 = EVSYS_CHMUX_TCE0_OVF_gc;												//event overflow timer E0 CH0
-	PMIC.CTRL |= PMIC_LOLVLEN_bm;															      //turn on low level interrupts
+	PMIC.CTRL |= PMIC_LOLVLEN_bm;															//turn on low level interrupts
 }
 
 void init_Timer(void)
 {
-  TCE0.PER      = 125 * SAMPLE_DELAY;     					              //Tper =  256 * ((SAMPLE_DELAY * 125) +1) / 32M = convererts predefined time as milliseconds
-  TCE0.CTRLA    = TC_CLKSEL_DIV256_gc;                            //Prescaling 256
-  TCE0.CTRLB    = TC_WGMODE_NORMAL_gc;          	                //Normal mode
-  TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	                  //Interrupt overflow off
+  TCE0.PER      = 999;     					// Tper =  8 * (3124 +1) / 32M = 0.025 s
+  TCE0.CTRLA    = TC_CLKSEL_DIV256_gc;          // Prescaling 8
+  TCE0.CTRLB    = TC_WGMODE_NORMAL_gc;        	// Normal mode
+  TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	// Interrupt overflow off
 }
 
 void color_Line_Follower(void)
 {
 	for (uint8_t i = 0; i < 96; i++) 
 	{
-		if (led_out_white[i] == 1) PORTE_OUTSET = PIN7_bm;
+		if (led_out_red[i] == 1) PORTE_OUTSET = PIN7_bm;
 		else PORTE_OUTCLR = PIN7_bm;
 		
 		PORTE_OUTSET = PIN5_bm;
@@ -336,11 +325,4 @@ void color_Line_Follower(void)
 	PORTE_OUTCLR = PIN4_bm;
 	
 	PORTE_OUTCLR = PIN3_bm;		// BLANK low
-}
-
-int16_t control_Result(volatile int16_t* result)
-{
-  int16_t temp_res = *result;
-  if(temp_res == *result) return temp_res;
-  else return 0;
 }
