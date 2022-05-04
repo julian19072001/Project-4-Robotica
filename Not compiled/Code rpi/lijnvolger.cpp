@@ -67,10 +67,17 @@ int main(int nArgc, char* aArgv[])
       int regelResult = GetNewXMegaData(waarde, AANTAL_WAARDES);
       if(regelResult == VALIDDATA) 
       {
+        static int just_Turned = 0;
+        if(just_Turned > 0) just_Turned++;
+        if(just_Turned > WAIT_SAMPLES) just_Turned = 0;
+
+        int road;
+        int what_Doing;
+
         switch(driving_State)
         {
           case STRAIGHT:
-          int road = get_Road_Information(waarde, MIN_LINE_CHANGE);
+          road = get_Road_Information(waarde, MIN_LINE_CHANGE);
           switch(road)
           {
             case LINE:
@@ -100,28 +107,53 @@ int main(int nArgc, char* aArgv[])
 
             case LEFT_TURN:
             printf("Bocht links\n");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
             driving_State = TURNING_LEFT;
             break;
 
             case RIGHT_TURN:
             printf("Bocht rechts\n");
+            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
             driving_State = TURNING_RIGHT;
             break;
 
             case NO_LINE:
-            printf("Geen lijn\n");
-            stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-            exit(-2);
+            if(just_Turned > 0)
+            {
+              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            }
+            else
+            {
+              printf("Geen lijn\n");
+              stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              exit(-2);
+            }
             break;
           }
           break;
 
           case TURNING_LEFT:
-          driving_State = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          what_Doing = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
+          else
+          {
+            drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            usleep(200000);
+            just_Turned = 1;
+            driving_State = what_Doing;
+          }
           break;
 
           case TURNING_RIGHT:
-          driving_State = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          what_Doing = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
+          else
+          {
+            drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            usleep(200000);
+            just_Turned = 1;
+            driving_State = what_Doing;
+          }
           break;
 
           case TURNING_180:
@@ -139,7 +171,7 @@ void exit_signal_handler(int signo)
 {
   if (signo == SIGINT) 
   {
-    oLego.reset_all();
+    stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
     printf("\nThe line follower has stopped.\n\n");
     exit(-2);
   }
