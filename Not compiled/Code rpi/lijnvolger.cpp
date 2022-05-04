@@ -1,3 +1,4 @@
+//cd ~/hva_examples/legorpi_examples
 //g++ -Wall -o lijn lijnvolger.cpp ~/hva_libraries/legorpi/*.cpp -I/home/piuser/hva_libraries/legorpi ~/hva_libraries/legorpi/*.c
 
 #include <ctype.h>
@@ -102,7 +103,7 @@ int main(int nArgc, char* aArgv[])
             case SPLIT:
             printf("Splitsing\n");
             stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-            exit(-2);
+            driving_State = TURNING_180;
             break;
 
             case LEFT_TURN:
@@ -157,7 +158,15 @@ int main(int nArgc, char* aArgv[])
           break;
 
           case TURNING_180:
-          driving_State = turn_180(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          what_Doing = turn_180(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+          if(what_Doing == TURNING_180) driving_State = what_Doing;
+          else
+          {
+            drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            usleep(200000);
+            just_Turned = 1;
+            driving_State = what_Doing;
+          }
           break;
         }
       } 

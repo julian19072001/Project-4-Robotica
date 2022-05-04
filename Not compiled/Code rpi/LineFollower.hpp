@@ -24,11 +24,12 @@
 
 #define WAIT_SAMPLES    100
 
-void drive_Straight(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed);
 void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed);
 int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change);
 int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change);
 int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change);
+
+void drive_Straight(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed);
 void stop(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed);
 
 int check_Line_Status(int* data_Location, uint16_t min_Line_Change);
