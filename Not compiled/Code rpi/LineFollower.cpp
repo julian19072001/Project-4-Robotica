@@ -138,7 +138,7 @@ void stop(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
 {
     oLego.set_motor_dps(motor_Left, speed * -1);
     oLego.set_motor_dps(motor_Right, speed * -1);
-    usleep(300000);
+    usleep(200000);
     oLego.set_motor_dps(motor_Left, 0);
     oLego.set_motor_dps(motor_Right, 0);
 }
