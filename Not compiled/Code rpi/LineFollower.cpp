@@ -1,5 +1,13 @@
 #include "LineFollower.hpp"
 
+BrickPi3 oLego;
+
+void drive_Straight(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
+{
+    oLego.set_motor_dps(motor_Left, speed);
+    oLego.set_motor_dps(motor_Right, speed);
+}
+
 void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
 {
     static int lastError = 0;
@@ -15,69 +23,122 @@ void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of
 
 int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
 {
-    int origin_Line = check_Line_Status(data_Location, min_Line_Change);
-    if(origin_Line == RIGHT)
+    static int count = 0;
+    if(count % 3 == 0)
     {
-        oLego.set_motor_dps(motor_Left, 0);
-        oLego.set_motor_dps(motor_Right, 0);
-        return STRAIGHT;
+        static int right_Detected = 0;
+        data_Location[5] = data_Location[6];
+        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        
+        if(origin_Line == RIGHT)
+        {   
+            right_Detected++;
+        }
+
+        if(right_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
+        {
+            oLego.set_motor_dps(motor_Left, 0);
+            oLego.set_motor_dps(motor_Right, 0);
+            count = 0;
+            right_Detected = 0;
+            return STRAIGHT;
+        }
+        else
+        {
+            oLego.set_motor_dps(motor_Left, (speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Right, (-speed / 5.0) * 2.8);
+            count++;
+            return TURNING_RIGHT;
+        }
     }
-    else
-    {
-        oLego.set_motor_dps(motor_Left, speed);
-        oLego.set_motor_dps(motor_Right, speed * -1);
-        return TURNING_RIGHT;
-    }
+    count++;
+    return TURNING_RIGHT;
 }
 
 int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
 {
-    int origin_Line = check_Line_Status(data_Location, min_Line_Change);
-    if(origin_Line == LEFT)
+    static int count = 0;
+    if(count % 3 == 0)
     {
-        oLego.set_motor_dps(motor_Left, 0);
-        oLego.set_motor_dps(motor_Right, 0);
-        return STRAIGHT;
+        static int left_Detected = 0;
+        data_Location[1] = data_Location[0];
+        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        
+        if(origin_Line == LEFT)
+        {   
+            left_Detected++;
+        }
+
+        if(left_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
+        {
+            oLego.set_motor_dps(motor_Left, 0);
+            oLego.set_motor_dps(motor_Right, 0);
+            count = 0;
+            left_Detected = 0;
+            return STRAIGHT;
+        }
+        else
+        {
+            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            count++;
+            return TURNING_LEFT;
+        }
     }
-    else
-    {
-        oLego.set_motor_dps(motor_Left, speed * -1);
-        oLego.set_motor_dps(motor_Right, speed);
-        return TURNING_LEFT;
-    }
+    count++;
+    return TURNING_LEFT;
 }
 
 int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
-{
-    int origin_Line = check_Line_Status(data_Location, min_Line_Change);
-    static bool first_Line_Past = false;
-    if(origin_Line == LEFT && first_Line_Past == true || origin_Line == RIGHT && first_Line_Past == true)
+{   
+    static bool turned_90 = false;
+    static int count = 0;
+    if(count % 3 == 0)
     {
-        oLego.set_motor_dps(motor_Left, 0);
-        oLego.set_motor_dps(motor_Right, 0);
-        first_Line_Past = false;
-        return STRAIGHT;
+        static int side_Line_Detected = 0;
+        data_Location[1] = data_Location[0];
+        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        
+        if(origin_Line == LEFT)                             side_Line_Detected++; 
+        else if(origin_Line == RIGHT && turned_90 == true)  side_Line_Detected++;
+
+        if(side_Line_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
+        {
+            if(turned_90 == true)
+            {
+                oLego.set_motor_dps(motor_Left, 0);
+                oLego.set_motor_dps(motor_Right, 0);
+                count = 0;
+                side_Line_Detected = 0;
+                return STRAIGHT;
+            }
+            else
+            {
+                oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
+                oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+                count++;
+                side_Line_Detected = 0;
+                turned_90 = true;
+                return TURNING_180; 
+            }
+        }
+        else
+        {
+            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            count++;
+            return TURNING_180;
+        }
     }
-    else if(first_Line_Past == false && origin_Line == LEFT)
-    {
-        oLego.set_motor_dps(motor_Left, speed * -1);
-        oLego.set_motor_dps(motor_Right, speed);
-        first_Line_Past = true;
-        return TURNING_180;
-    }
-    else
-    {
-        oLego.set_motor_dps(motor_Left, speed * -1);
-        oLego.set_motor_dps(motor_Right, speed);
-        return TURNING_180;
-    }
+    count++;
+    return TURNING_180;
 }
 
 void stop(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
 {
-    oLego.set_motor_dps(motor_Left, speed * -4);
-    oLego.set_motor_dps(motor_Right, speed * -4);
-    usleep(50000);
+    oLego.set_motor_dps(motor_Left, speed * -1);
+    oLego.set_motor_dps(motor_Right, speed * -1);
+    usleep(200000);
     oLego.set_motor_dps(motor_Left, 0);
     oLego.set_motor_dps(motor_Right, 0);
 }
@@ -189,7 +250,7 @@ int get_Road_Information(int* data_Location, uint16_t min_Line_Change)
 
     if(line_right > 0)
     {
-        if(line_right > 100)
+        if(line_right > WAIT_SAMPLES)
         {
             if(!turn_Detected && on_Line == true)
             {
@@ -208,7 +269,7 @@ int get_Road_Information(int* data_Location, uint16_t min_Line_Change)
 
     if(line_left > 0)
     {
-        if(line_left > 100)
+        if(line_left > WAIT_SAMPLES)
         {
             if(!turn_Detected && on_Line == true)
             {
@@ -248,7 +309,7 @@ int get_Road_Information(int* data_Location, uint16_t min_Line_Change)
     if(turn_Detected > 0)
     {
         turn_Detected++;
-        if(turn_Detected > 100) turn_Detected = 0;
+        if(turn_Detected > WAIT_SAMPLES) turn_Detected = 0;
     }
     
     return LINE;
