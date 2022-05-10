@@ -17,8 +17,8 @@ void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of
  
     lastError = error;
 
-    oLego.set_motor_dps(motor_Left, speed - adjust);
-    oLego.set_motor_dps(motor_Right, speed + adjust);
+    oLego.set_motor_dps(motor_Left, speed + adjust);
+    oLego.set_motor_dps(motor_Right, speed - adjust);
 }
 
 int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
@@ -28,7 +28,7 @@ int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint
     {
         static int right_Detected = 0;
         data_Location[5] = data_Location[6];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == RIGHT)
         {   
@@ -45,8 +45,8 @@ int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (-speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, speed);
+            oLego.set_motor_dps(motor_Right, -speed);
             count++;
             return TURNING_RIGHT;
         }
@@ -62,7 +62,7 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
     {
         static int left_Detected = 0;
         data_Location[1] = data_Location[0];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == LEFT)
         {   
@@ -79,8 +79,8 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, -speed);
+            oLego.set_motor_dps(motor_Right, speed);
             count++;
             return TURNING_LEFT;
         }
@@ -97,7 +97,8 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     {
         static int side_Line_Detected = 0;
         data_Location[1] = data_Location[0];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        data_Location[5] = data_Location[6];
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
         
         if(origin_Line == LEFT)                             side_Line_Detected++; 
         else if(origin_Line == RIGHT && turned_90 == true)  side_Line_Detected++;
@@ -114,8 +115,8 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
             }
             else
             {
-                oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-                oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+                oLego.set_motor_dps(motor_Left, -speed);
+                oLego.set_motor_dps(motor_Right, speed);
                 count++;
                 side_Line_Detected = 0;
                 turned_90 = true;
@@ -124,8 +125,8 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, -speed);
+            oLego.set_motor_dps(motor_Right, speed);
             count++;
             return TURNING_180;
         }
@@ -134,13 +135,124 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     return TURNING_180;
 }
 
-void stop(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
+int stop(int* data_Location, uint16_t min_Line_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t turning_Direction, uint16_t time)
 {
-    oLego.set_motor_dps(motor_Left, speed * -1);
-    oLego.set_motor_dps(motor_Right, speed * -1);
-    usleep(200000);
+    oLego.set_motor_dps(motor_Left, -speed);
+    oLego.set_motor_dps(motor_Right, -speed);
+    usleep(480000);
     oLego.set_motor_dps(motor_Left, 0);
     oLego.set_motor_dps(motor_Right, 0);
+    switch(turning_Direction)
+        {
+            case RIGHT:
+            return TURNING_RIGHT;
+            break;
+
+            case LEFT:
+            return TURNING_LEFT;
+            break;
+
+            case TURN_180:
+            return TURNING_180;
+            break;
+
+            case STOP_DRIVING:
+            return STOP_DRIVING;
+            break;
+        }
+        return STOP;
+    /*
+    int line_Status	= check_Line_Status(data_Location, min_Line_Change);
+    switch (line_Status)
+    {
+        case LEFT:
+        oLego.set_motor_dps(motor_Left, speed);
+        oLego.set_motor_dps(motor_Right, speed);
+        usleep(time * 1000);
+        oLego.set_motor_dps(motor_Left, 0);
+        oLego.set_motor_dps(motor_Right, 0);
+        switch(turning_Direction)
+        {
+            case RIGHT:
+            return TURNING_RIGHT;
+            break;
+
+            case LEFT:
+            return TURNING_LEFT;
+            break;
+
+            case TURN_180:
+            return TURNING_180;
+            break;
+
+            case STOP_DRIVING:
+            return STOP_DRIVING;
+            break;
+        }
+        break;
+
+        case RIGHT:
+        oLego.set_motor_dps(motor_Left, speed);
+        oLego.set_motor_dps(motor_Right, speed);
+        usleep(time * 1000);
+        oLego.set_motor_dps(motor_Left, 0);
+        oLego.set_motor_dps(motor_Right, 0);
+        switch(turning_Direction)
+        {
+            case RIGHT:
+            return TURNING_RIGHT;
+            break;
+
+            case LEFT:
+            return TURNING_LEFT;
+            break;
+
+            case TURN_180:
+            return TURNING_180;
+            break;
+
+            case STOP_DRIVING:
+            return STOP_DRIVING;
+            break;
+        }
+        
+        break;
+
+        case BOTH:
+        oLego.set_motor_dps(motor_Left, speed);
+        oLego.set_motor_dps(motor_Right, speed);
+        usleep(time * 1000);
+        oLego.set_motor_dps(motor_Left, 0);
+        oLego.set_motor_dps(motor_Right, 0);
+        switch(turning_Direction)
+        {
+            case RIGHT:
+            return TURNING_RIGHT;
+            break;
+
+            case LEFT:
+            return TURNING_LEFT;
+            break;
+
+            case TURN_180:
+            return TURNING_180;
+            break;
+
+            case STOP_DRIVING:
+            return STOP_DRIVING;
+            break;
+        }
+        break;
+    }
+
+    drive_Straight(motor_Left, motor_Right, -speed);
+    return STOP;
+    */
+}
+
+void reset_Lego()
+{
+    oLego.reset_all();
 }
 
 int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
