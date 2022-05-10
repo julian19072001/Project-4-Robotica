@@ -15,7 +15,7 @@
 #define LEFT_TURN       4
 #define OPTION_LEFT     5
 #define OPTION_RIGHT    6
-#define SPLIT           7
+#define SPLIT           7 
 
 #define STRAIGHT        1
 #define TURNING_LEFT    2

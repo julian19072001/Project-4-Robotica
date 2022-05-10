@@ -304,7 +304,7 @@ int get_Road_Information(int* data_Location, uint16_t min_Line_Change)
     static int turn_Detected = 0;
 
     static bool on_Line         = true;
-    static bool cross_Detected  = false;
+    static bool cross_Detected  = false; 
 
     int line_Status = check_Line_Status(data_Location, min_Line_Change);
     switch(line_Status)
