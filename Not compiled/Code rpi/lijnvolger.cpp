@@ -759,7 +759,7 @@ int GetNewXMegaData(int *data_Location, int data_Size)
           else lineRead = 1;
         }
 
-        sCommBufLen = 0;
+        sCommBufLen = 0; 
       } 
       else if(sCommBufLen >= BUFSZ - 1) 
       {
