@@ -131,8 +131,7 @@ int main(int nArgc, char* aArgv[])
               y_Pos += (1 * y_Direction_Modifier);
               if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (right_Scanned == false || (right_Scanned == true && x_Pos < 0))))
               {
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
                 if(x_Direction_Modifier == 1)
                 {
                   x_Direction_Modifier = 0;
@@ -153,8 +152,7 @@ int main(int nArgc, char* aArgv[])
               y_Pos += (1 * y_Direction_Modifier);
               if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (right_Scanned == false || (right_Scanned == true && x_Pos < 0))))
               {
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
                 if(x_Direction_Modifier == 1)
                 {
                   x_Direction_Modifier = 0;
@@ -180,15 +178,13 @@ int main(int nArgc, char* aArgv[])
                 {
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
-                  target_Direction = LEFT;
-                  driving_State = STOP;
+                  driving_State = TURNING_LEFT;
                 }
                 else 
                 {
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
-                  target_Direction = RIGHT;
-                  driving_State = STOP;
+                  driving_State = TURNING_RIGHT;
                 }
               }
               else
@@ -198,15 +194,13 @@ int main(int nArgc, char* aArgv[])
                 {
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
-                  target_Direction = RIGHT;
-                  driving_State = STOP;
+                  driving_State = TURNING_RIGHT;
                 }
                 else 
                 {
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
-                  target_Direction = LEFT;
-                  driving_State = STOP;
+                  driving_State = TURNING_LEFT;
                 }
               }
               break;
@@ -229,14 +223,12 @@ int main(int nArgc, char* aArgv[])
                 }
                 if(right_Scanned ==  true)
                 {
-                  target_Direction = STOP_DRIVING;
-                  driving_State = STOP;
+                  reset_Lego();
                   program_State = GO_HOME;
                   printf("Going home\n");
                 } 
                 else right_Scanned = true;
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
               }
               else
               {
@@ -252,15 +244,13 @@ int main(int nArgc, char* aArgv[])
                     x_Direction_Modifier = 0;
                     y_Direction_Modifier = -1;
                   }
-                  target_Direction = LEFT;
-                  driving_State = STOP;
+                  driving_State = TURNING_LEFT;
                 }
                 else
                 {
                   if(right_Scanned == true) 
                   {
-                    target_Direction = STOP_DRIVING;
-                    driving_State = STOP;
+                    reset_Lego();
                     program_State = GO_HOME;
                     x_Min = x_Pos;
                     printf("Going home\n");
@@ -268,8 +258,7 @@ int main(int nArgc, char* aArgv[])
                   else
                   {
                     x_Direction_Modifier = -1;
-                    target_Direction = TURN_180;
-                    driving_State = STOP;
+                    driving_State = TURNING_180;
                     right_Scanned = true;
                     x_Max = x_Pos;
                   }
@@ -299,8 +288,7 @@ int main(int nArgc, char* aArgv[])
                   printf("Going home\n");
                 } 
                 else right_Scanned = true;
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
               }
               else
               {
@@ -316,15 +304,13 @@ int main(int nArgc, char* aArgv[])
                     x_Direction_Modifier = 0;
                     y_Direction_Modifier = 1;
                   }
-                  target_Direction = RIGHT;
-                  driving_State = STOP;
+                  driving_State = TURNING_RIGHT;
                 }
                 else
                 {
                   if(right_Scanned == true) 
                   {
-                    target_Direction = STOP_DRIVING;
-                    driving_State = STOP;
+                    reset_Lego();
                     program_State = GO_HOME;
                     x_Min = x_Pos;
                     printf("Going home\n");
@@ -334,8 +320,7 @@ int main(int nArgc, char* aArgv[])
                     right_Scanned = true;
                     x_Max = x_Pos;
                     x_Direction_Modifier = -1;
-                    target_Direction = TURN_180;
-                    driving_State = STOP;
+                    driving_State = TURNING_180;
                   }
                 }
               }
@@ -386,6 +371,7 @@ int main(int nArgc, char* aArgv[])
             }
             break;
 
+            /*
             case STOP:
             driving_State = stop(waarde, MIN_LINE_CHANGE, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, target_Direction, REVERSE_TIME);
             break;
@@ -393,6 +379,7 @@ int main(int nArgc, char* aArgv[])
             case STOP_DRIVING:
             reset_Lego();
             break;
+            */
           }
           break;
 
@@ -461,29 +448,25 @@ int main(int nArgc, char* aArgv[])
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = -1;
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
               }
               else if(y_Pos > 0 && x_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = -1;
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
               }
               else if(y_Pos < 0 && x_Direction_Modifier == 1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = 1;
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
               }
               else if(y_Pos < 0 && x_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = 1;
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
               }
               else program_State = GO_Y0;
             }
@@ -543,6 +526,7 @@ int main(int nArgc, char* aArgv[])
             }
             break;
 
+            /*
             case STOP:
             driving_State = stop(waarde, MIN_LINE_CHANGE, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, target_Direction, REVERSE_TIME);
             break;
@@ -550,6 +534,7 @@ int main(int nArgc, char* aArgv[])
             case STOP_DRIVING:
             reset_Lego();
             break;
+            */
           }
           break;
 
@@ -564,29 +549,25 @@ int main(int nArgc, char* aArgv[])
               {
                 x_Direction_Modifier = -1;
                 y_Direction_Modifier = 0;
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
               }
               else if(x_Pos > 0 && y_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = -1;
                 y_Direction_Modifier = 0;
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
               }
               else if(x_Pos < 0 && y_Direction_Modifier == 1)
               {
                 x_Direction_Modifier = 1;
                 y_Direction_Modifier = 0;
-                target_Direction = RIGHT;
-                driving_State = STOP;
+                driving_State = TURNING_RIGHT;
               }
               else if(x_Pos < 0 && y_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 1;
                 y_Direction_Modifier = 0;
-                target_Direction = LEFT;
-                driving_State = STOP;
+                driving_State = TURNING_LEFT;
               }
               else program_State = GO_X0;
             }
@@ -646,6 +627,7 @@ int main(int nArgc, char* aArgv[])
             }
             break;
 
+            /*
             case STOP:
             driving_State = stop(waarde, MIN_LINE_CHANGE, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, target_Direction, REVERSE_TIME);
             break;
@@ -653,6 +635,7 @@ int main(int nArgc, char* aArgv[])
             case STOP_DRIVING:
             reset_Lego();
             break;
+            */
           }
           break;
 
@@ -668,21 +651,18 @@ int main(int nArgc, char* aArgv[])
             }
             if(y_Direction_Modifier == -1)
             {
-              target_Direction = TURN_180;
-              driving_State = STOP;
+              driving_State = TURNING_180;
               y_Direction_Modifier = 1;
             }
             if(x_Direction_Modifier == 1)
             {
-              target_Direction = RIGHT;
-              driving_State = STOP;
+              driving_State = TURNING_RIGHT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == -1)
             {
-              target_Direction = LEFT;
-              driving_State = STOP;
+              driving_State = TURNING_LEFT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
@@ -718,6 +698,7 @@ int main(int nArgc, char* aArgv[])
             }
             break;
 
+            /*
             case STOP:
             driving_State = stop(waarde, MIN_LINE_CHANGE, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, target_Direction, REVERSE_TIME);
             break;
@@ -725,6 +706,7 @@ int main(int nArgc, char* aArgv[])
             case STOP_DRIVING:
             reset_Lego();
             break;
+            */
           }
           break;
         }
