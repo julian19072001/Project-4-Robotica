@@ -15,7 +15,7 @@
 #define LEFT_TURN       4
 #define OPTION_LEFT     5
 #define OPTION_RIGHT    6
-#define SPLIT           7 
+#define SPLIT           7
 
 #define STRAIGHT        1
 #define TURNING_LEFT    2
@@ -24,7 +24,7 @@
 #define STOP_DRIVING    5
 #define STOP            6
 
-#define LINE_SAMPLES    30
+#define LINE_SAMPLES    20
 
 #define WAIT_SAMPLES    100
 

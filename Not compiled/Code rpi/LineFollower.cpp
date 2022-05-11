@@ -27,7 +27,6 @@ int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint
     if(count % 3 == 0)
     {
         static int right_Detected = 0;
-        data_Location[5] = data_Location[6];
         int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == RIGHT)
@@ -61,7 +60,6 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
     if(count % 3 == 0)
     {
         static int left_Detected = 0;
-        data_Location[1] = data_Location[0];
         int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == LEFT)
@@ -96,19 +94,18 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     if(count % 3 == 0)
     {
         static int side_Line_Detected = 0;
-        data_Location[1] = data_Location[0];
-        data_Location[5] = data_Location[6];
         int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
         
         if(origin_Line == LEFT)                             side_Line_Detected++; 
-        else if(origin_Line == RIGHT && turned_90 == true)  side_Line_Detected++;
+        //else if(origin_Line == RIGHT && turned_90 == true)  side_Line_Detected++;
 
         if(side_Line_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
         {
             if(turned_90 == true)
             {
-                oLego.set_motor_dps(motor_Left, 0);
-                oLego.set_motor_dps(motor_Right, 0);
+                oLego.set_motor_dps(motor_Left, speed);
+                oLego.set_motor_dps(motor_Right, -speed);
+                usleep(100000);
                 count = 0;
                 side_Line_Detected = 0;
                 return STRAIGHT;
@@ -260,21 +257,21 @@ int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
   static bool line;
   static uint16_t old_middle[LINE_SAMPLES];
   if(old_middle[LINE_SAMPLES-1] == 0) old_middle[LINE_SAMPLES-1] = 2000;
-  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + min_Line_Change))                       line = false;
-  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - min_Line_Change))                  line = true;
+  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + (450)))                       line = false;
+  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - (450)))                  line = true;
   else                                                                                              line = true;
 
   static bool left;
   static uint16_t old_left[LINE_SAMPLES];
-  if((data_Location[0] + data_Location[1]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))          left = true;
-  else if((data_Location[0] + data_Location[1]) > (old_left[LINE_SAMPLES-1] + min_Line_Change))     left = false;
+  if((data_Location[0]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))          left = true;
+  else if((data_Location[0] ) > (old_left[LINE_SAMPLES-1] + min_Line_Change))     left = false;
   else                                                                                              left = false;
 
 
   static bool right;
   static uint16_t old_right[LINE_SAMPLES];
-  if((data_Location[5] + data_Location[6]) < (old_right[LINE_SAMPLES-1] - min_Line_Change))         right = true;
-  else if((data_Location[5] + data_Location[6]) > (old_right[LINE_SAMPLES-1] + min_Line_Change))    right = false;
+  if((data_Location[6]) < (old_right[LINE_SAMPLES-1] - min_Line_Change))         right = true;
+  else if((data_Location[6]) > (old_right[LINE_SAMPLES-1] + min_Line_Change))    right = false;
   else                                                                                              right = false;
   
   for(int i = LINE_SAMPLES-1; i > 0; --i)
@@ -287,8 +284,8 @@ int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
     else               old_right[i]   = old_right[i-1];
   }
   old_middle[0] = data_Location[3];                     
-  old_left[0]   = (data_Location[0] + data_Location[1]);
-  old_right[0]  = (data_Location[5] + data_Location[6]);
+  old_left[0]   = (data_Location[0]);
+  old_right[0]  = (data_Location[6]);
 
   if(line == false) return NO_LINE;
   else if(right == true && left == true) return BOTH;
@@ -304,7 +301,7 @@ int get_Road_Information(int* data_Location, uint16_t min_Line_Change)
     static int turn_Detected = 0;
 
     static bool on_Line         = true;
-    static bool cross_Detected  = false; 
+    static bool cross_Detected  = false;
 
     int line_Status = check_Line_Status(data_Location, min_Line_Change);
     switch(line_Status)

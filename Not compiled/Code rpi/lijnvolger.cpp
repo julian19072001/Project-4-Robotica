@@ -28,14 +28,14 @@
 #define MOTOR_LEFT      PORT6_MA
 #define MOTOR_RIGHT     PORT5_MB
 #define MAX_SPEED       -500
-#define TURNING_SPEED   -250
+#define TURNING_SPEED   -105
 #define REVERSE_TIME    100
 
 #define SETPOINT    0       // The goal for readLine (center)
 #define KP          0.028   // The P value in PID
 #define KD          3       // The D value in PID
 
-#define MIN_LINE_CHANGE 500
+#define MIN_LINE_CHANGE 250
 
 void exit_signal_handler(int signo);
 int GetNewXMegaData(int *data_Location, int data_Size);
@@ -80,7 +80,7 @@ int main(int nArgc, char* aArgv[])
       {
         static int just_Turned = 0;
         if(just_Turned > 0) just_Turned++;
-        if(just_Turned > WAIT_SAMPLES) just_Turned = 0;
+        if(just_Turned > WAIT_SAMPLES*3) just_Turned = 0;
 
         int road;
         int what_Doing;
@@ -115,7 +115,8 @@ int main(int nArgc, char* aArgv[])
             switch(road)
             {
               case LINE:
-              follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              if(!just_Turned) follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              else follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED);
               break;
 
               case CROSS:
@@ -492,13 +493,13 @@ int main(int nArgc, char* aArgv[])
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing links\n");
+                printf("Splitsing rechts\n");
                 x_Pos += (1 * x_Direction_Modifier);
                 follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 break;
 
                 case SPLIT:
-                printf("Splitsing links\n");
+                printf("Splitsing\n");
                 x_Pos += (1 * x_Direction_Modifier);
                 follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 break;
@@ -593,13 +594,13 @@ int main(int nArgc, char* aArgv[])
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing links\n");
+                printf("Splitsing rechts\n");
                 y_Pos += (1 * y_Direction_Modifier);
                 follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 break;
 
                 case SPLIT:
-                printf("Splitsing links\n");
+                printf("Splitsing\n");
                 y_Pos += (1 * y_Direction_Modifier);
                 follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 break;
@@ -645,7 +646,7 @@ int main(int nArgc, char* aArgv[])
             case STRAIGHT:
             if(y_Direction_Modifier == 1)
             {
-              printf("Einde van programma");
+              printf("Einde van programma\n");
               reset_Lego();
               exit(-2);
             }
