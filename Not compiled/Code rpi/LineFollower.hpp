@@ -30,7 +30,7 @@
 
     #define LINE_SAMPLES    20
 
-    #define WAIT_SAMPLES    100
+    #define WAIT_SAMPLES    115
 
     void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change);
     int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change);
