@@ -25,15 +25,16 @@
 #define COMPORT 24
 #define AANTAL_WAARDES 7
 
-#define MOTOR_LEFT      PORT5_MB
-#define MOTOR_RIGHT     PORT6_MA
-#define MAX_SPEED       500
+#define MOTOR_LEFT      PORT6_MA
+#define MOTOR_RIGHT     PORT5_MB
+#define MAX_SPEED       -500
+#define TURNING_SPEED   -105
 
 #define SETPOINT    0       // The goal for readLine (center)
-#define KP          0.028   // The P value in PID
-#define KD          3       // The D value in PID
+#define KP          0.018  // The P value in PID
+#define KD          2       // The D value in PID
 
-#define MIN_LINE_CHANGE 400
+#define MIN_LINE_CHANGE 360
 
 void exit_signal_handler(int signo);
 int GetNewXMegaData(int *data_Location, int data_Size);
@@ -42,14 +43,16 @@ int main(int nArgc, char* aArgv[])
 {
   signal(SIGINT, exit_signal_handler);
   
-  int waarde[AANTAL_WAARDES];
+  int line_Data[AANTAL_WAARDES];
   int commIsOpen = 0;
 
   commIsOpen = !RS232_OpenComport(COMPORT, 115200, "8N1", 0);
   sleep(1);
 
   int program_State = SEARCH_LINE;
-  int driving_State = STRAIGHT;
+  int driving_State;
+  int target_Direction;
+  int last_Junction;
 
   int y_Direction_Modifier;
   int y_Pos;
@@ -61,7 +64,7 @@ int main(int nArgc, char* aArgv[])
   int x_Max;
   int x_Min;
 
-  static bool right_Scanned;
+  static bool side_Scanned;
   
   while(1) 
   { 
@@ -72,12 +75,12 @@ int main(int nArgc, char* aArgv[])
     }
     if(commIsOpen)
     {
-      int regelResult = GetNewXMegaData(waarde, AANTAL_WAARDES);
+      int regelResult = GetNewXMegaData(line_Data, AANTAL_WAARDES);
       if(regelResult == VALIDDATA) 
       {
         static int just_Turned = 0;
         if(just_Turned > 0) just_Turned++;
-        if(just_Turned > WAIT_SAMPLES) just_Turned = 0;
+        if(just_Turned > WAIT_SAMPLES*4) just_Turned = 0;
 
         int road;
         int what_Doing;
@@ -85,21 +88,86 @@ int main(int nArgc, char* aArgv[])
         switch(program_State)
         {
           case SEARCH_LINE:
-          road = get_Road_Information(waarde, MIN_LINE_CHANGE);
+          road = get_Road_Information(line_Data, MIN_LINE_CHANGE);
           switch(road)
           {
             case LINE:
-            follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+            follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
             break;
 
             case CROSS:
             printf("Kruising\n");
             x_Pos = 0;
-            y_Pos = 0;
+            y_Pos = 1;
             x_Direction_Modifier = 0;
             y_Direction_Modifier = 1;
-            right_Scanned = false;
+            side_Scanned = false;
             program_State = DRIVE_OVER_GRID;
+            driving_State = STRAIGHT;
+            break;
+
+            case OPTION_LEFT:
+            printf("Splitsing links\n");
+            x_Pos = 0;
+            y_Pos = 1;
+            x_Direction_Modifier = 0;
+            y_Direction_Modifier = 1;
+            x_Max = 0;
+            side_Scanned = false;
+            program_State = DRIVE_OVER_GRID;
+            driving_State = STRAIGHT;
+            break;
+
+            case OPTION_RIGHT:
+            printf("Splitsing rechts\n");
+            x_Pos = 0;
+            y_Pos = 1;
+            x_Direction_Modifier = 0;
+            y_Direction_Modifier = 1;
+            x_Min = 0;
+            side_Scanned = false;
+            program_State = DRIVE_OVER_GRID;
+            driving_State = STRAIGHT;
+            break;
+
+            case SPLIT:
+            printf("Splitsing\n");
+            x_Pos = 0;
+            y_Pos = 1;
+            x_Direction_Modifier = 1;
+            y_Direction_Modifier = 0;
+            y_Max = 1;
+            side_Scanned = false;
+            program_State = DRIVE_OVER_GRID;
+            driving_State = TURNING_RIGHT;
+            break;
+
+            case LEFT_TURN:
+            printf("Bocht links\n");
+            x_Pos = 0;
+            y_Pos = 1;
+            x_Direction_Modifier = -1;
+            y_Direction_Modifier = 0;
+            x_Max = 0;
+            side_Scanned = true;
+            program_State = DRIVE_OVER_GRID;
+            driving_State = TURNING_LEFT;
+            break;
+
+            case RIGHT_TURN:
+            printf("Bocht rechts\n");
+            x_Pos = 0;
+            y_Pos = 1;
+            x_Direction_Modifier = 1;
+            y_Direction_Modifier = 0;
+            x_Min = 0;
+            side_Scanned = false;
+            program_State = DRIVE_OVER_GRID;
+            driving_State = TURNING_RIGHT;
+            break;
+
+            case NO_LINE:
+            printf("Error met detecteren van de lijn.\n");
             break;
           }
           break;
@@ -108,62 +176,69 @@ int main(int nArgc, char* aArgv[])
           switch(driving_State)
           {
             case STRAIGHT:
-            road = get_Road_Information(waarde, MIN_LINE_CHANGE);
+            road = get_Road_Information(line_Data, MIN_LINE_CHANGE);
             switch(road)
             {
               case LINE:
-              follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              if(!just_Turned) follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+              else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
               break;
 
               case CROSS:
               printf("Kruising\n");
               x_Pos += (1 * x_Direction_Modifier);
               y_Pos += (1 * y_Direction_Modifier);
-              follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
               break;
 
               case OPTION_LEFT:
-              printf("Splitsing links\n");
-              x_Pos += (1 * x_Direction_Modifier);
-              y_Pos += (1 * y_Direction_Modifier);
-              if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (right_Scanned == false || (right_Scanned == true && x_Pos < 0))))
+              if(!just_Turned)
               {
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-                driving_State = TURNING_LEFT;
-                if(x_Direction_Modifier == 1)
+                printf("Splitsing links\n");
+                x_Pos += (1 * x_Direction_Modifier);
+                y_Pos += (1 * y_Direction_Modifier);
+                if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (side_Scanned == false || (side_Scanned == true && x_Pos < 0))))
                 {
-                  x_Direction_Modifier = 0;
-                  y_Direction_Modifier = 1;
+                  driving_State = TURNING_LEFT;
+                  if(x_Direction_Modifier == 1)
+                  {
+                    x_Direction_Modifier = 0;
+                    y_Direction_Modifier = 1;
+                  }
+                  else
+                  {
+                    x_Direction_Modifier = 0;
+                    y_Direction_Modifier = -1;
+                  }
                 }
-                else
-                {
-                  x_Direction_Modifier = 0;
-                  y_Direction_Modifier = -1;
-                }
+                else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
               }
-              else follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
               break;
 
               case OPTION_RIGHT:
-              printf("Splitsing rechts\n");
-              x_Pos += (1 * x_Direction_Modifier);
-              y_Pos += (1 * y_Direction_Modifier);
-              if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (right_Scanned == false || (right_Scanned == true && x_Pos < 0))))
+              if(!just_Turned)
               {
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-                driving_State = TURNING_RIGHT;
-                if(x_Direction_Modifier == 1)
+                printf("Splitsing rechts\n");
+                x_Pos += (1 * x_Direction_Modifier);
+                y_Pos += (1 * y_Direction_Modifier);
+                if(!y_Direction_Modifier && x_Pos != 0 && (x_Pos % 2 == 0 && (side_Scanned == false || (side_Scanned == true && x_Pos < 0))))
                 {
-                  x_Direction_Modifier = 0;
-                  y_Direction_Modifier = -1;
+                  driving_State = TURNING_RIGHT;
+                  if(x_Direction_Modifier == 1)
+                  {
+                    x_Direction_Modifier = 0;
+                    y_Direction_Modifier = -1;
+                  }
+                  else
+                  {
+                    x_Direction_Modifier = 0;
+                    y_Direction_Modifier = 1;
+                  }
                 }
-                else
-                {
-                  x_Direction_Modifier = 0;
-                  y_Direction_Modifier = 1;
-                }
+                else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
               }
-              else follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
               break;
 
               case SPLIT:
@@ -173,36 +248,32 @@ int main(int nArgc, char* aArgv[])
               if(y_Direction_Modifier == 1)
               {
                 y_Max = y_Pos;
-                if(right_Scanned == true)
+                if(side_Scanned == true)
                 {
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_LEFT;
                 }
                 else 
                 {
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_RIGHT;
                 }
               }
               else
               {
                 y_Min = y_Pos;
-                if(right_Scanned == true)
+                if(side_Scanned == true)
                 {
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_RIGHT;
                 }
                 else 
                 {
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_LEFT;
                 }
               }
@@ -210,6 +281,7 @@ int main(int nArgc, char* aArgv[])
 
               case LEFT_TURN:
               printf("Bocht links\n");
+              last_Junction = LEFT_TURN;
               x_Pos += (1 * x_Direction_Modifier);
               y_Pos += (1 * y_Direction_Modifier);
               if(x_Direction_Modifier == 0)
@@ -224,12 +296,17 @@ int main(int nArgc, char* aArgv[])
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
                 }
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                if(side_Scanned ==  true)
+                {
+                  reset_Lego();
+                  program_State = GO_HOME;
+                  printf("Going home\n");
+                } 
+                else side_Scanned = true;
                 driving_State = TURNING_LEFT;
               }
               else
               {
-                int temp_Pos = x_Pos *-1;
                 if(x_Pos % 2 == 0)
                 {
                   if(x_Direction_Modifier == 1)
@@ -242,13 +319,13 @@ int main(int nArgc, char* aArgv[])
                     x_Direction_Modifier = 0;
                     y_Direction_Modifier = -1;
                   }
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_LEFT;
                 }
                 else
                 {
-                  if(right_Scanned == true) 
+                  if(side_Scanned == true) 
                   {
+                    reset_Lego();
                     program_State = GO_HOME;
                     x_Min = x_Pos;
                     printf("Going home\n");
@@ -256,9 +333,8 @@ int main(int nArgc, char* aArgv[])
                   else
                   {
                     x_Direction_Modifier = -1;
-                    stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                     driving_State = TURNING_180;
-                    right_Scanned = true;
+                    side_Scanned = true;
                     x_Max = x_Pos;
                   }
                 }
@@ -267,6 +343,7 @@ int main(int nArgc, char* aArgv[])
 
               case RIGHT_TURN:
               printf("Bocht rechts\n");
+              last_Junction = RIGHT_TURN;
               x_Pos += (1 * x_Direction_Modifier);
               y_Pos += (1 * y_Direction_Modifier);
               if(!x_Direction_Modifier)
@@ -281,7 +358,12 @@ int main(int nArgc, char* aArgv[])
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
                 }
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                if(side_Scanned == true)
+                {
+                  program_State = GO_HOME;
+                  printf("Going home\n");
+                } 
+                else if(x_Pos)side_Scanned = true;
                 driving_State = TURNING_RIGHT;
               }
               else
@@ -298,25 +380,23 @@ int main(int nArgc, char* aArgv[])
                     x_Direction_Modifier = 0;
                     y_Direction_Modifier = 1;
                   }
-                  stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                   driving_State = TURNING_RIGHT;
                 }
                 else
                 {
-                  if(right_Scanned == true) 
+                  if(side_Scanned == true) 
                   {
-                    stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                    reset_Lego();
                     program_State = GO_HOME;
                     x_Min = x_Pos;
                     printf("Going home\n");
                   }
                   else
                   {
-                    right_Scanned = true;
+                    side_Scanned = true;
                     x_Max = x_Pos;
                     x_Direction_Modifier = -1;
-                    stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-                    driving_State = TURNING_180;
+                    driving_State = TURNING_180_RIGHT;
                   }
                 }
               }
@@ -330,7 +410,7 @@ int main(int nArgc, char* aArgv[])
               else
               {
                 printf("Geen lijn\n");
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                reset_Lego();
                 exit(-2);
               }
               break;
@@ -338,36 +418,40 @@ int main(int nArgc, char* aArgv[])
             break;
 
             case TURNING_LEFT:
-            what_Doing = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Left(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
 
             case TURNING_RIGHT:
-            what_Doing = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
 
             case TURNING_180:
-            what_Doing = turn_180(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_180(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_180) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
+              just_Turned = 1;
+              driving_State = what_Doing;
+            }
+            break;
+
+            case TURNING_180_RIGHT:
+            what_Doing = turn_180_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
+            if(what_Doing == TURNING_180_RIGHT) driving_State = what_Doing;
+            else
+            {
               just_Turned = 1;
               driving_State = what_Doing;
             }
@@ -379,13 +463,15 @@ int main(int nArgc, char* aArgv[])
           switch(driving_State)
           {
             case STRAIGHT:
-            if(x_Direction_Modifier == 1)
+            if(!x_Pos && !y_Pos) program_State = TURN_0;
+            else if(x_Direction_Modifier == 1)
             {
               if(x_Pos < 0) program_State = GO_X0;
               else
               {
                 x_Direction_Modifier = -1;
-                driving_State = TURNING_180;
+                if(last_Junction == RIGHT_TURN) driving_State = TURNING_180_RIGHT;
+                else driving_State = TURNING_180;
               } 
             }
             else if(x_Direction_Modifier == -1)
@@ -394,7 +480,8 @@ int main(int nArgc, char* aArgv[])
               else
               {
                 x_Direction_Modifier = 1;
-                driving_State = TURNING_180;
+                if(last_Junction == RIGHT_TURN) driving_State = TURNING_180_RIGHT;
+                else driving_State = TURNING_180;
               } 
             }
             else if(y_Direction_Modifier == 1)
@@ -403,7 +490,8 @@ int main(int nArgc, char* aArgv[])
               else
               {
                 y_Direction_Modifier = -1;
-                driving_State = TURNING_180;
+                if(last_Junction == RIGHT_TURN) driving_State = TURNING_180_RIGHT;
+                else driving_State = TURNING_180;
               } 
             }
             else if(y_Direction_Modifier == -1)
@@ -412,25 +500,54 @@ int main(int nArgc, char* aArgv[])
               else
               {
                 y_Direction_Modifier = 1;
-                driving_State = TURNING_180;
+                if(last_Junction == RIGHT_TURN) driving_State = TURNING_180_RIGHT;
+                else driving_State = TURNING_180;
               }
             }
             break;
 
+            case TURNING_LEFT:
+            what_Doing = turn_Left(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
+            if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
+            else
+            {
+              just_Turned = 1;
+              driving_State = what_Doing;
+            }
+            break;
+
+            case TURNING_RIGHT:
+            what_Doing = turn_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
+            if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
+            else
+            {
+              just_Turned = 1;
+              driving_State = what_Doing;
+            }
+            break;
+
             case TURNING_180:
-            what_Doing = turn_180(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_180(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_180) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
+              just_Turned = 1;
+              driving_State = what_Doing;
+            }
+            break;
+
+            case TURNING_180_RIGHT:
+            what_Doing = turn_180_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
+            if(what_Doing == TURNING_180_RIGHT) driving_State = what_Doing;
+            else
+            {
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
           }
           break;
-
+          
           case GO_X0:
           switch(driving_State)
           {
@@ -442,87 +559,91 @@ int main(int nArgc, char* aArgv[])
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = -1;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_RIGHT;
               }
               else if(y_Pos > 0 && x_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = -1;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_LEFT;
               }
               else if(y_Pos < 0 && x_Direction_Modifier == 1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = 1;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_LEFT;
               }
               else if(y_Pos < 0 && x_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 0;
                 y_Direction_Modifier = 1;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_RIGHT;
               }
               else program_State = GO_Y0;
             }
             else
             {
-              road = get_Road_Information(waarde, MIN_LINE_CHANGE);
+              road = get_Road_Information(line_Data, MIN_LINE_CHANGE);
               switch(road)
               {
                 case LINE:
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case CROSS:
                 printf("Kruising\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case OPTION_LEFT:
                 printf("Splitsing links\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing links\n");
+                printf("Splitsing rechts\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case SPLIT:
-                printf("Splitsing links\n");
+                printf("Splitsing\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                break;
+
+                case LEFT_TURN:
+                printf("Bocht links\n");
+                x_Pos += (1 * x_Direction_Modifier);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                break;
+
+                case RIGHT_TURN:
+                printf("Bocht rechts\n");
+                x_Pos += (1 * x_Direction_Modifier);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
               }
             }
             break;
 
             case TURNING_LEFT:
-            what_Doing = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Left(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
 
             case TURNING_RIGHT:
-            what_Doing = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
@@ -541,87 +662,91 @@ int main(int nArgc, char* aArgv[])
               {
                 x_Direction_Modifier = -1;
                 y_Direction_Modifier = 0;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_LEFT;
               }
               else if(x_Pos > 0 && y_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = -1;
                 y_Direction_Modifier = 0;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_RIGHT;
               }
               else if(x_Pos < 0 && y_Direction_Modifier == 1)
               {
                 x_Direction_Modifier = 1;
                 y_Direction_Modifier = 0;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_RIGHT;
               }
               else if(x_Pos < 0 && y_Direction_Modifier == -1)
               {
                 x_Direction_Modifier = 1;
                 y_Direction_Modifier = 0;
-                stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
                 driving_State = TURNING_LEFT;
               }
               else program_State = GO_X0;
             }
             else
             {
-              road = get_Road_Information(waarde, MIN_LINE_CHANGE);
+              road = get_Road_Information(line_Data, MIN_LINE_CHANGE);
               switch(road)
               {
                 case LINE:
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case CROSS:
                 printf("Kruising\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case OPTION_LEFT:
                 printf("Splitsing links\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing links\n");
+                printf("Splitsing rechts\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case SPLIT:
-                printf("Splitsing links\n");
+                printf("Splitsing\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(waarde, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                break;
+
+                case LEFT_TURN:
+                printf("Bocht links\n");
+                y_Pos += (1 * y_Direction_Modifier);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                break;
+
+                case RIGHT_TURN:
+                printf("Bocht rechts\n");
+                y_Pos += (1 * y_Direction_Modifier);
+                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
                 break;
               }
             }
             break;
 
             case TURNING_LEFT:
-            what_Doing = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Left(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
 
             case TURNING_RIGHT:
-            what_Doing = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
@@ -635,26 +760,24 @@ int main(int nArgc, char* aArgv[])
             case STRAIGHT:
             if(y_Direction_Modifier == 1)
             {
-              printf("Einde van programma");
-              stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+              printf("Einde van programma\n");
+              reset_Lego();
               exit(-2);
             }
             if(y_Direction_Modifier == -1)
             {
-              stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              driving_State = TURNING_180;
-              y_Direction_Modifier = 1;
+              driving_State = TURNING_LEFT;
+              y_Direction_Modifier = 0;
+              x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == 1)
             {
-              stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
               driving_State = TURNING_RIGHT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == -1)
             {
-              stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
               driving_State = TURNING_LEFT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
@@ -662,36 +785,20 @@ int main(int nArgc, char* aArgv[])
             break;
 
             case TURNING_LEFT:
-            what_Doing = turn_Left(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Left(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_LEFT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
             break;
 
             case TURNING_RIGHT:
-            what_Doing = turn_Right(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            what_Doing = turn_Right(line_Data, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             if(what_Doing == TURNING_RIGHT) driving_State = what_Doing;
             else
             {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
-              just_Turned = 1;
-              driving_State = what_Doing;
-            }
-            break;
-
-            case TURNING_180:
-            what_Doing = turn_180(waarde, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
-            if(what_Doing == TURNING_180) driving_State = what_Doing;
-            else
-            {
-              drive_Straight(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
-              usleep(200000);
               just_Turned = 1;
               driving_State = what_Doing;
             }
@@ -700,7 +807,7 @@ int main(int nArgc, char* aArgv[])
           break;
         }
       } 
-      else if(regelResult == INVALIDDATA) printf("Error\n Data niet goed ontvangen!\n");    
+      //else if(regelResult == INVALIDDATA) printf("Error\n Data niet goed ontvangen!\n");    
     }
   }
 }
@@ -710,7 +817,7 @@ void exit_signal_handler(int signo)
 {
   if (signo == SIGINT) 
   {
-    stop(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED);
+    reset_Lego();
     printf("\nThe line follower has stopped.\n\n");
     exit(-2);
   }
@@ -748,7 +855,7 @@ int GetNewXMegaData(int *data_Location, int data_Size)
           else lineRead = 1;
         }
 
-        sCommBufLen = 0;
+        sCommBufLen = 0; 
       } 
       else if(sCommBufLen >= BUFSZ - 1) 
       {

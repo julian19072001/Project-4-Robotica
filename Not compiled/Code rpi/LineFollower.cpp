@@ -8,17 +8,35 @@ void drive_Straight(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
     oLego.set_motor_dps(motor_Right, speed);
 }
 
-void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
+void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of_Change, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
 {
     static int lastError = 0;
-    unsigned int linePos = ((data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5]));
+    static int old_Left = 0;
+    static int old_Right = 0;
+    static int side_Line = 0;
+
+    if(side_Line > 0) side_Line++;
+    if(side_Line > 33) side_Line = 0;
+    
+    if(data_Location[0] < (old_Left - 120) || data_Location[6] < (old_Right - 120)) side_Line = 1;
+    
+    if(side_Line > 0)
+    {
+       data_Location[1] = data_Location[5];
+       data_Location[2] = data_Location[4];
+    } 
+
+    old_Left = data_Location[0];
+    old_Right = data_Location[6];
+
+    unsigned int linePos = (data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5]);
     int error = goal - linePos;
     int adjust = error*error_Gain + rate_Of_Change*(error - lastError);
  
     lastError = error;
-
-    oLego.set_motor_dps(motor_Left, speed - adjust);
-    oLego.set_motor_dps(motor_Right, speed + adjust);
+      
+    oLego.set_motor_dps(motor_Left, speed + adjust);
+    oLego.set_motor_dps(motor_Right, speed - adjust);
 }
 
 int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
@@ -27,26 +45,23 @@ int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint
     if(count % 3 == 0)
     {
         static int right_Detected = 0;
-        data_Location[5] = data_Location[6];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == RIGHT)
         {   
             right_Detected++;
         }
 
-        if(right_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
+        if(right_Detected > 1 && (count > (WAIT_SAMPLES * 2)))
         {
-            oLego.set_motor_dps(motor_Left, 0);
-            oLego.set_motor_dps(motor_Right, 0);
             count = 0;
             right_Detected = 0;
             return STRAIGHT;
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (-speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, speed);
+            oLego.set_motor_dps(motor_Right, -speed);
             count++;
             return TURNING_RIGHT;
         }
@@ -61,8 +76,7 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
     if(count % 3 == 0)
     {
         static int left_Detected = 0;
-        data_Location[1] = data_Location[0];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.5) - 15);
         
         if(origin_Line == LEFT)
         {   
@@ -71,16 +85,16 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
 
         if(left_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
         {
-            oLego.set_motor_dps(motor_Left, 0);
-            oLego.set_motor_dps(motor_Right, 0);
             count = 0;
             left_Detected = 0;
+            oLego.set_motor_dps(motor_Left, 0);
+            oLego.set_motor_dps(motor_Right, 0);
             return STRAIGHT;
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, -speed);
+            oLego.set_motor_dps(motor_Right, speed);
             count++;
             return TURNING_LEFT;
         }
@@ -96,16 +110,17 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     if(count % 3 == 0)
     {
         static int side_Line_Detected = 0;
-        data_Location[1] = data_Location[0];
-        int origin_Line = check_Line_Status(data_Location, min_Line_Change - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
         
         if(origin_Line == LEFT)                             side_Line_Detected++; 
-        else if(origin_Line == RIGHT && turned_90 == true)  side_Line_Detected++;
 
         if(side_Line_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
         {
             if(turned_90 == true)
             {
+                oLego.set_motor_dps(motor_Left, speed);
+                oLego.set_motor_dps(motor_Right, -speed);
+                usleep(100000);
                 oLego.set_motor_dps(motor_Left, 0);
                 oLego.set_motor_dps(motor_Right, 0);
                 count = 0;
@@ -114,8 +129,8 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
             }
             else
             {
-                oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-                oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+                oLego.set_motor_dps(motor_Left, -speed);
+                oLego.set_motor_dps(motor_Right, speed);
                 count++;
                 side_Line_Detected = 0;
                 turned_90 = true;
@@ -124,8 +139,8 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
         }
         else
         {
-            oLego.set_motor_dps(motor_Left, (-speed / 5.0) * 2.8);
-            oLego.set_motor_dps(motor_Right, (speed / 5.0) * 2.8);
+            oLego.set_motor_dps(motor_Left, -speed);
+            oLego.set_motor_dps(motor_Right, speed);
             count++;
             return TURNING_180;
         }
@@ -134,13 +149,53 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     return TURNING_180;
 }
 
-void stop(uint8_t motor_Left, uint8_t motor_Right, uint16_t speed)
+int turn_180_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16_t speed, uint16_t min_Line_Change)
+{   
+    static bool turned_90 = false;
+    static int count = 0;
+    if(count % 3 == 0)
+    {
+        static int side_Line_Detected = 0;
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
+        
+        if(origin_Line == RIGHT)                             side_Line_Detected++; 
+
+        if(side_Line_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
+        {
+            if(turned_90 == true)
+            {
+                oLego.set_motor_dps(motor_Left, -speed);
+                oLego.set_motor_dps(motor_Right, speed);
+                usleep(100000);
+                count = 0;
+                side_Line_Detected = 0;
+                return STRAIGHT;
+            }
+            else
+            {
+                oLego.set_motor_dps(motor_Left, speed);
+                oLego.set_motor_dps(motor_Right, -speed);
+                count++;
+                side_Line_Detected = 0;
+                turned_90 = true;
+                return TURNING_180_RIGHT; 
+            }
+        }
+        else
+        {
+            oLego.set_motor_dps(motor_Left, speed);
+            oLego.set_motor_dps(motor_Right, -speed);
+            count++;
+            return TURNING_180_RIGHT;
+        }
+    }
+    count++;
+    return TURNING_180_RIGHT;
+}
+
+void reset_Lego()
 {
-    oLego.set_motor_dps(motor_Left, speed * -1);
-    oLego.set_motor_dps(motor_Right, speed * -1);
-    usleep(200000);
-    oLego.set_motor_dps(motor_Left, 0);
-    oLego.set_motor_dps(motor_Right, 0);
+    oLego.reset_all();
 }
 
 int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
@@ -148,21 +203,21 @@ int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
   static bool line;
   static uint16_t old_middle[LINE_SAMPLES];
   if(old_middle[LINE_SAMPLES-1] == 0) old_middle[LINE_SAMPLES-1] = 2000;
-  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + min_Line_Change))                       line = false;
-  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - min_Line_Change))                  line = true;
+  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + (1050)))                       line = false;
+  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - (1050)))                  line = true;
   else                                                                                              line = true;
 
   static bool left;
   static uint16_t old_left[LINE_SAMPLES];
-  if((data_Location[0] + data_Location[1]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))          left = true;
-  else if((data_Location[0] + data_Location[1]) > (old_left[LINE_SAMPLES-1] + min_Line_Change))     left = false;
+  if((data_Location[0]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))          left = true;
+  else if((data_Location[0] ) > (old_left[LINE_SAMPLES-1] + min_Line_Change))     left = false;
   else                                                                                              left = false;
 
 
   static bool right;
   static uint16_t old_right[LINE_SAMPLES];
-  if((data_Location[5] + data_Location[6]) < (old_right[LINE_SAMPLES-1] - min_Line_Change))         right = true;
-  else if((data_Location[5] + data_Location[6]) > (old_right[LINE_SAMPLES-1] + min_Line_Change))    right = false;
+  if((data_Location[6]) < (old_right[LINE_SAMPLES-1] - min_Line_Change))         right = true;
+  else if((data_Location[6]) > (old_right[LINE_SAMPLES-1] + min_Line_Change))    right = false;
   else                                                                                              right = false;
   
   for(int i = LINE_SAMPLES-1; i > 0; --i)
@@ -175,8 +230,8 @@ int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
     else               old_right[i]   = old_right[i-1];
   }
   old_middle[0] = data_Location[3];                     
-  old_left[0]   = (data_Location[0] + data_Location[1]);
-  old_right[0]  = (data_Location[5] + data_Location[6]);
+  old_left[0]   = (data_Location[0]);
+  old_right[0]  = (data_Location[6]);
 
   if(line == false) return NO_LINE;
   else if(right == true && left == true) return BOTH;
