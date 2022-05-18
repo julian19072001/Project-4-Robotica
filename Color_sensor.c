@@ -3,16 +3,20 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <string.h>
 #include "serialF0.h"
 #include "clock.h"
 //#include "Kleur_arrays.h"
 #include "spi.h"
 
-#define SHFT_LATCH_bm        PIN4_bm 
+#define SHFT_LATCH_bm   PIN4_bm 
 #define SAMPLES 8
 
-#define COLOR_SAMPLES   10
+#define COLOR_SAMPLES   4
 
+#define COLOR_AVERAGE   10
+
+// Defines for led control
 #define RED     0x11
 #define GREEN   0x22
 #define BLUE    0x44
@@ -24,8 +28,6 @@ volatile int32_t tot_d75, tot_d72, tot_d69, tot_d66, tot_d63, tot_d60, tot_d57;
 
 volatile uint8_t num;
 volatile uint8_t rgb_ready_flag;
-
-//volatile uint8_t num_d75, num_d72, num_d69, num_d66, num_d63, num_d60, num_d57;
 
 void init_Line_Follower(void);
 void init_Timer(void);
@@ -42,39 +44,95 @@ void Get_RGB_value(uint16_t *rgb);
 
 int main(void) 
 {
-  int64_t tot;
   uint16_t rgb[4];
+  uint8_t rgb_poll[7];
+  uint8_t largest;
+  uint8_t largest_pos;
+  char command = 'S';
+
+	init_clock();
+  init_Timer();	
+  init_stream(F_CPU);
 
   PORTE_DIRSET = PIN4_bm;		// LAT
 	PORTE_DIRSET = PIN3_bm;		// BLANK
 
-	init_Line_Follower();
-	init_clock();
-	init_stream(F_CPU);
   spi_init();
+  init_Line_Follower();
   leds_reset();
-  init_Timer;
-  leds_back(RED);
-
-  sei(); 
+  
+  sei();
 
 	while (1) {
-    Get_RGB_value(rgb);
-    //if (rgb_ready_flag) {
-      if (((rgb[1] > (rgb[2] - 10)) && (rgb[1] < (rgb[1] + 10))) && ((rgb[1] > (rgb[3] - 10)) && (rgb[1] < (rgb[3] + 10)))) {
-        printf("WHITE\n");
-      } else if (((rgb[1] > (rgb[2] - 20)) && (rgb[1] < (rgb[2] + 20))) && ((rgb[3] < (rgb[1] - 30)) && (rgb[3] < (rgb[2] - 30))) && (rgb[1] > rgb[2])) {
-        printf("YELLOW\n");
-      } else if ((rgb[1] > rgb[3]) && (rgb[3] > rgb[2])) {
-        printf("PURPLE\n");
-      } else if ((rgb[2] > rgb[1]) && (rgb[2] > rgb[3])) {
-        printf("GREEN\n");
-      } else if ((rgb[3] > rgb[1]) && (rgb[3] > rgb[2])) {
-        printf("BLUE\n");
-      } else if ((rgb[1] > rgb[2]) && (rgb[1] > rgb[3])) {
-        printf("RED\n");
+    if (CanRead_F0()) {
+      scanf("%c", &command);
+    }
+
+    while (command == 'S') {
+      for (uint8_t i = 0; i < COLOR_AVERAGE; i++) {
+        Get_RGB_value(rgb);
+        if (((rgb[1] > (rgb[2] - 10)) && (rgb[1] < (rgb[1] + 10))) && ((rgb[1] > (rgb[3] - 10)) && (rgb[1] < (rgb[3] + 10)))) {
+          rgb_poll[1]++;
+        } else if (((rgb[1] > (rgb[2] - 20)) && (rgb[1] < (rgb[2] + 20))) && ((rgb[3] < (rgb[1] - 30)) && (rgb[3] < (rgb[2] - 30))) && (rgb[1] > rgb[2])) {
+          rgb_poll[2]++;
+        } else if ((rgb[1] > rgb[3]) && (rgb[3] > rgb[2])) {
+          rgb_poll[3]++;
+        } else if ((rgb[2] > rgb[1]) && (rgb[2] > rgb[3])) {
+          rgb_poll[4]++;
+        } else if ((rgb[3] > rgb[1]) && (rgb[3] > rgb[2])) {
+          rgb_poll[5]++;
+        } else if ((rgb[1] > rgb[2]) && (rgb[1] > rgb[3])) {
+          rgb_poll[6]++;
+        } else {
+          rgb_poll[0]++;
+        }
       }
-    //}
+
+      largest = rgb_poll[0];
+      for(uint8_t i = 1; i < 7; i++) {
+           if(largest < rgb_poll[i]) {
+          largest = rgb_poll[i];
+          largest_pos = i;
+        }   
+      }
+
+      switch (largest_pos) {
+      case 0:
+        printf("INCONCLUSIVE");
+        break;
+      
+      case 1:
+        printf("WHITE");
+        break;
+      
+      case 2:
+        printf("YELLOW");
+        break;
+      
+      case 3:
+        printf("PURPLE");
+        break;
+      
+      case 4:
+        printf("GREEN");
+        break;
+      
+      case 5:
+        printf("BLUE");
+        break;
+      
+      case 6:
+        printf("RED");
+        break;
+      
+      default:
+        break;
+      }
+
+      leds_reset();
+      memset(rgb_poll, 0, sizeof(rgb_poll));
+      command = '\n';
+    }
 
     //'printf("Red %5d | Green %5d | Blue %5d | Cal %5d\n", rgb[1], rgb[2], rgb[3], rgb[0]);
   }
@@ -368,7 +426,7 @@ static uint8_t Map_val(uint16_t x, uint16_t in_min, uint16_t in_max, uint8_t out
 void Get_RGB_value(uint16_t *rgb)
 {
   uint16_t ctot, rtot, gtot, btot;
-  uint16_t cprp, rprp, gprp, bprp;
+  uint16_t rprp, gprp, bprp;
 
   uint16_t total;
 
