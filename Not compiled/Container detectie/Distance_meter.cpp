@@ -19,7 +19,7 @@ int main(void)
     init_stream(F_CPU);
     
     Ultrasonic left(40, 0, &PORTD, PIN0_bm, PIN1_bm);
-    Ultrasonic right(40, 0, &PORTE, PIN0_bm, PIN1_bm);
+    Ultrasonic right(40, 0, &PORTD, PIN2_bm, PIN3_bm);
 
 	while (1) {
         distance_left = (int)left.Measure_distance_cm(22.307);

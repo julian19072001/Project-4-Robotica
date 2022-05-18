@@ -6,9 +6,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <string.h>
 #include <signal.h>
 #include <rs232.h>
 #include <LineFollower.hpp>
+#include <container_Detection.hpp>
 
 #define BUFSZ 4096
 #define NODATA 0
@@ -22,8 +24,10 @@
 #define GO_Y0 4
 #define TURN_0 5
 
-#define COMPORT 24
-#define AANTAL_WAARDES 7
+#define COMPORT_DISTANCE 24
+#define COMPORT_LINE 25
+#define NUMBER_VALUES_DISTANCE 2
+#define NUMBER_VALUES_LINE 7
 
 #define MOTOR_LEFT      PORT6_MA
 #define MOTOR_RIGHT     PORT5_MB
@@ -37,21 +41,24 @@
 #define MIN_LINE_CHANGE 360
 
 void exit_signal_handler(int signo);
-int GetNewXMegaData(int *data_Location, int data_Size);
+int GetNewXMegaData(int comport, int *data_Location, int data_Size);
 
 int main(int nArgc, char* aArgv[]) 
 {
   signal(SIGINT, exit_signal_handler);
   
-  int line_Data[AANTAL_WAARDES];
-  int commIsOpen = 0;
+  int line_Data[NUMBER_VALUES_LINE];
+  int distance_Data[NUMBER_VALUES_DISTANCE];
+  
+  int commIsOpen1 = 0;
+  int commIsOpen2 = 0;
 
-  commIsOpen = !RS232_OpenComport(COMPORT, 115200, "8N1", 0);
+  commIsOpen1 = !RS232_OpenComport(COMPORT_LINE, 115200, "8N1", 0);
+  commIsOpen2 = !RS232_OpenComport(COMPORT_DISTANCE, 115200, "8N1", 0);
   sleep(1);
 
   int program_State = SEARCH_LINE;
   int driving_State;
-  int target_Direction;
   int last_Junction;
 
   int y_Direction_Modifier;
@@ -65,18 +72,25 @@ int main(int nArgc, char* aArgv[])
   int x_Min;
 
   static bool side_Scanned;
+
+  char tempKleur[] = "unread";
   
   while(1) 
   { 
-    if (!commIsOpen) 
+    if (!commIsOpen1) 
     {
-      printf("Can not open COM %d\nExit Program\n", COMPORT);
+      printf("Can not open COM%d for line follower\nExit Program\n", COMPORT_LINE);
       exit(-2);
     }
-    if(commIsOpen)
+    if (!commIsOpen2) 
     {
-      int regelResult = GetNewXMegaData(line_Data, AANTAL_WAARDES);
-      if(regelResult == VALIDDATA) 
+      printf("Can not open COM%d for distance reader\nExit Program\n", COMPORT_DISTANCE);
+      exit(-2);
+    }
+    if(commIsOpen1 && commIsOpen2)
+    {
+      int line_Result = GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
+      if(line_Result == VALIDDATA) 
       {
         static int just_Turned = 0;
         if(just_Turned > 0) just_Turned++;
@@ -84,6 +98,7 @@ int main(int nArgc, char* aArgv[])
 
         int road;
         int what_Doing;
+        int distance_Result;
 
         switch(program_State)
         {
@@ -173,6 +188,23 @@ int main(int nArgc, char* aArgv[])
           break;
 
           case DRIVE_OVER_GRID:
+          distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
+          if(distance_Result == VALIDDATA && !just_Turned)
+          {
+            if((!x_Direction_Modifier && (x_Pos != x_Min || x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min || y_Pos != y_Max)))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
+            {
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+          }
           switch(driving_State)
           {
             case STRAIGHT:
@@ -761,6 +793,7 @@ int main(int nArgc, char* aArgv[])
             if(y_Direction_Modifier == 1)
             {
               printf("Einde van programma\n");
+              print_Found_Containers();
               reset_Lego();
               exit(-2);
             }
@@ -768,17 +801,17 @@ int main(int nArgc, char* aArgv[])
             {
               driving_State = TURNING_LEFT;
               y_Direction_Modifier = 0;
-              x_Direction_Modifier = 0;
+              x_Direction_Modifier = 1;
             }
             if(x_Direction_Modifier == 1)
             {
-              driving_State = TURNING_RIGHT;
+              driving_State = TURNING_LEFT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == -1)
             {
-              driving_State = TURNING_LEFT;
+              driving_State = TURNING_RIGHT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
@@ -817,13 +850,14 @@ void exit_signal_handler(int signo)
 {
   if (signo == SIGINT) 
   {
+    print_Found_Containers();
     reset_Lego();
     printf("\nThe line follower has stopped.\n\n");
     exit(-2);
   }
 }
 
-int GetNewXMegaData(int *data_Location, int data_Size) 
+int GetNewXMegaData(int comport, int *data_Location, int data_Size) 
 {
   static char sCommBuf[BUFSZ];
   static int sCommBufLen = 0;
@@ -831,7 +865,7 @@ int GetNewXMegaData(int *data_Location, int data_Size)
   
   do 
   {
-    bytesRead = RS232_PollComport(COMPORT, (unsigned char *) &sCommBuf[sCommBufLen], 1);
+    bytesRead = RS232_PollComport(comport, (unsigned char *) &sCommBuf[sCommBufLen], 1);
     if(bytesRead > 0) 
     {
       sCommBufLen += bytesRead;

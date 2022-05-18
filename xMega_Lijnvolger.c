@@ -63,15 +63,19 @@ ISR(ADCA_CH0_vect)
 {
   static uint8_t n_d75 = 0;
   static int16_t sum_d75 = 0;
+  static int16_t zero_d75 = 0;
 
+  PORTE_OUTSET = PIN3_bm;
+  zero_d75 = ADCA.CH0.RES;
+  PORTE_OUTCLR = PIN3_bm;
   if(n_d75 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d75 -= ADCA.CH0.RES;
+    sum_d75 -= (ADCA.CH0.RES + zero_d75);
     ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d75 += ADCA.CH0.RES;
+    sum_d75 += (ADCA.CH0.RES - zero_d75);
     ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN1_gc;
   }
 
@@ -89,15 +93,20 @@ ISR(ADCA_CH1_vect)
 {
   static uint8_t n_d72 = 0;
   static int16_t sum_d72 = 0;
+  static int16_t zero_d72 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d72 = ADCA.CH1.RES;
+  PORTE_OUTCLR = PIN3_bm;
 
   if(n_d72 & 0x01) 
   {                  		//second (even) measurement
-    sum_d72 -= ADCA.CH1.RES;
+    sum_d72 -= (ADCA.CH1.RES + zero_d72);
     ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d72 += ADCA.CH1.RES;
+    sum_d72 += (ADCA.CH1.RES - zero_d72);
     ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN4_gc;
   }
 
@@ -115,15 +124,20 @@ ISR(ADCA_CH2_vect)
 {
   static uint8_t n_d69 = 0;
   static int16_t sum_d69 = 0;
+  static int16_t zero_d69 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d69 = ADCA.CH2.RES;
+  PORTE_OUTCLR = PIN3_bm;
 
   if(n_d69 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d69 -= ADCA.CH2.RES;
+    sum_d69 -= (ADCA.CH2.RES + zero_d69);
     ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d69 += ADCA.CH2.RES;
+    sum_d69 += (ADCA.CH2.RES - zero_d69);
     ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN6_gc;
   }
 
@@ -141,16 +155,20 @@ ISR(ADCB_CH0_vect)
 {
   static uint8_t n_d66 = 0;
   static int16_t sum_d66 = 0;	
-
+  static int16_t zero_d66 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d66 = ADCB.CH0.RES;
+  PORTE_OUTCLR = PIN3_bm;
 
   if(n_d66 & 0x01) 
   {                  		//second (even) measurement
-    sum_d66 -= ADCB.CH0.RES;
+    sum_d66 -= (ADCB.CH0.RES + zero_d66);
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d66 += ADCB.CH0.RES;
+    sum_d66 += (ADCB.CH0.RES - zero_d66);
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN0_gc;
   }
 
@@ -168,15 +186,20 @@ ISR(ADCB_CH1_vect)
 {
   static uint8_t n_d63 = 0;
   static int16_t sum_d63 = 0;
+  static int16_t zero_d63 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d63 = ADCB.CH1.RES;
+  PORTE_OUTCLR = PIN3_bm;
 
   if(n_d63 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d63 -= ADCB.CH1.RES;
+    sum_d63 -= (ADCB.CH1.RES + zero_d63);
     ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d63 += ADCB.CH1.RES;
+    sum_d63 += (ADCB.CH1.RES - zero_d63);
     ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN2_gc;
   }
 
@@ -194,15 +217,20 @@ ISR(ADCB_CH2_vect)
 {
   static uint8_t n_d60 = 0;
   static int16_t sum_d60 = 0;
+  static int16_t zero_d60 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d60 = ADCB.CH2.RES;
+  PORTE_OUTCLR = PIN3_bm;
 
   if(n_d60 & 0x01) 
   {                  		//second (even) measurement
-    sum_d60 -= ADCB.CH2.RES;
+    sum_d60 -= (ADCB.CH2.RES + zero_d60);
     ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN5_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d60 += ADCB.CH2.RES;
+    sum_d60 += (ADCB.CH2.RES - zero_d60);
     ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN5_gc;
   }
 
@@ -220,15 +248,20 @@ ISR(ADCB_CH3_vect)
 {
   static uint8_t n_d57 = 0;
   static int16_t sum_d57 = 0;
-/*
-  if(n_d57 & 0x01) 
+  static int16_t zero_d57 = 0;
+  
+  PORTE_OUTSET = PIN3_bm;
+  zero_d57 = ADCB.CH3.RES;
+  PORTE_OUTCLR = PIN3_bm;
+
+  /*if(n_d57 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d57 -= ADCB.CH3.RES;
+    sum_d57 -= (ADCB.CH3.RES + zero_d57);
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d57 += ADCB.CH3.RES;
+    sum_d57 += (ADCB.CH3.RES - zero_d57);
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN7_gc;
   }*/
   sum_d57 += ADCB.CH3.RES;
