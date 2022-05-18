@@ -7,7 +7,7 @@
     #include <string.h>
 
     #define MAX_NUMBER_OF_CONTAINERS    25
-    #define MIN_DETECTED 15
+    #define MIN_DETECTED 10
 
     typedef struct Container
     {

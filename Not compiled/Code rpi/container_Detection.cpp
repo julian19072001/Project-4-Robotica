@@ -12,9 +12,13 @@ int check_If_There(int16_t x_Pos, int16_t y_Pos);
 
 void check_Container_Left(uint8_t left_Distance, char *left_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
-    if(!left_Distance || left_Distance > 30) return;
-    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
     static int left_Detected = 0;
+    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
+    if(!left_Distance)
+    {
+        left_Detected = 0;
+        return;
+    }
     left_Detected++;
     if(left_Detected < MIN_DETECTED) return;
     left_Detected = 0;
@@ -60,7 +64,7 @@ void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_D
     }
     else if(y_Direction_Modifier == -1)
     {
-        int16_t container_X_Pos = x_Pos + 1;
+        int16_t container_X_Pos = x_Pos - 1;
         int16_t container_Y_Pos = y_Pos - 1;
         save_Container(container_X_Pos, container_Y_Pos, right_Color);
     }

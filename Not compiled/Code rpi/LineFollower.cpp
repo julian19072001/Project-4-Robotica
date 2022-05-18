@@ -14,26 +14,24 @@ void follow_Line(int* data_Location, int goal, float error_Gain, uint8_t rate_Of
     static int old_Left = 0;
     static int old_Right = 0;
     static int side_Line = 0;
+    int adjust = 0;
 
     if(side_Line > 0) side_Line++;
     if(side_Line > 33) side_Line = 0;
     
     if(data_Location[0] < (old_Left - 120) || data_Location[6] < (old_Right - 120)) side_Line = 1;
     
-    if(side_Line > 0)
+    if(!side_Line)
     {
-       data_Location[1] = data_Location[5];
-       data_Location[2] = data_Location[4];
+        unsigned int linePos = (data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5]);
+        int error = goal - linePos;
+        adjust = error*error_Gain + rate_Of_Change*(error - lastError);
+ 
+        lastError = error;
     } 
 
     old_Left = data_Location[0];
     old_Right = data_Location[6];
-
-    unsigned int linePos = (data_Location[1] + data_Location[2]) - (data_Location[4] + data_Location[5]);
-    int error = goal - linePos;
-    int adjust = error*error_Gain + rate_Of_Change*(error - lastError);
- 
-    lastError = error;
       
     oLego.set_motor_dps(motor_Left, speed + adjust);
     oLego.set_motor_dps(motor_Right, speed - adjust);
