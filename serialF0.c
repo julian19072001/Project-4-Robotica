@@ -27,7 +27,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-static uint8_t CanRead_F0(void);
+//static uint8_t CanRead_F0(void);
 static uint8_t ReadByte_F0(void);
 static uint8_t CanWrite_F0(void);
 static void    WriteByte_F0(uint8_t data);
@@ -273,7 +273,7 @@ static volatile uint8_t rx_f0_wridx, rx_f0_rdidx, rx_f0_buf[RXBUF_DEPTH_F0];
  *
  *  \return non-zero if there is data else zero
  */
-static uint8_t CanRead_F0(void) {
+uint8_t CanRead_F0(void) {
 	uint8_t wridx = rx_f0_wridx, rdidx = rx_f0_rdidx;
 	
 	if(wridx >= rdidx)
