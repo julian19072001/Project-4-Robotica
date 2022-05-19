@@ -7,10 +7,10 @@ Container_t containers[MAX_NUMBER_OF_CONTAINERS];
 
 static uint8_t number_Scanned_Containers = 0;
 
-void save_Container(int16_t x_Pos, int16_t y_Pos, char *color);
+void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort);
 int check_If_There(int16_t x_Pos, int16_t y_Pos);
 
-void check_Container_Left(uint8_t left_Distance, char *left_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
+void check_Container_Left(uint8_t left_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
     static int left_Detected = 0;
     if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
@@ -26,29 +26,29 @@ void check_Container_Left(uint8_t left_Distance, char *left_Color, int8_t x_Dire
     {
         int16_t container_X_Pos = x_Pos - 1;
         int16_t container_Y_Pos = y_Pos;
-        save_Container(container_X_Pos, container_Y_Pos, left_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(y_Direction_Modifier == -1)
     {
         int16_t container_X_Pos = x_Pos;
         int16_t container_Y_Pos = y_Pos - 1;
-        save_Container(container_X_Pos, container_Y_Pos, left_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(x_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
         int16_t container_Y_Pos = y_Pos;
-        save_Container(container_X_Pos, container_Y_Pos, left_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(x_Direction_Modifier == -1)
     {
         int16_t container_X_Pos = x_Pos - 1;
         int16_t container_Y_Pos = y_Pos - 1;
-        save_Container(container_X_Pos, container_Y_Pos, left_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
 }
 
-void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
+void check_Container_Right(uint8_t right_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
     static int right_Detected = 0;
     if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
@@ -64,51 +64,59 @@ void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_D
     {
         int16_t container_X_Pos = x_Pos;
         int16_t container_Y_Pos = y_Pos;
-        save_Container(container_X_Pos, container_Y_Pos, right_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(y_Direction_Modifier == -1)
     {
         int16_t container_X_Pos = x_Pos - 1;
         int16_t container_Y_Pos = y_Pos - 1;
-        save_Container(container_X_Pos, container_Y_Pos, right_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(x_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
         int16_t container_Y_Pos = y_Pos - 1;
-        save_Container(container_X_Pos, container_Y_Pos, right_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
     else if(x_Direction_Modifier == -1)
     {
         int16_t container_X_Pos = x_Pos - 1;
         int16_t container_Y_Pos = y_Pos;
-        save_Container(container_X_Pos, container_Y_Pos, right_Color);
+        save_Container(container_X_Pos, container_Y_Pos, comPort);
     }
 }
 
 void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t y_Max)
 {
     printf("\nGevonden containers:\n");
+    int x_Length = x_Max - x_Min;
+    int y_Length = y_Max - y_Min;
     for(int i = 0; i < number_Scanned_Containers; i++)
     {
-        int x_Pos = containers[i].x_Pos - x_Min;
-        int y_Pos = containers[i].y_Pos - y_Min;
-        int x_Length = x_Max - x_Min;
-        int y_Length = y_Max - y_Min;
+        int x_Pos = (containers[i].x_Pos - x_Min);
+        int y_Pos = (containers[i].y_Pos - y_Min);
         printf("Container: %d\n", i + 1);
-        printf("%d\n", ((y_Length - y_Pos) * x_Length) + x_Pos);
-        //printf("Coördinaat: (%d,%d)\n", containers[i].x_Pos, containers[i].y_Pos);
+        printf("Coördinaat: (%d,%d)\n", containers[i].x_Pos, containers[i].y_Pos);
+        printf("Positie: %d\n", ((y_Length - y_Pos - 1) * x_Length) + x_Pos + 1);
         printf("Kleur: %s\n\n", containers[i].color);
     } 
 }
 
-void save_Container(int16_t x_Pos, int16_t y_Pos, char *color)
+void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort)
 {
     if(check_If_There(x_Pos, y_Pos) == IS_THERE && number_Scanned_Containers) return;
     else
     {
         containers[number_Scanned_Containers].x_Pos = x_Pos;
         containers[number_Scanned_Containers].y_Pos = y_Pos;
+        
+        char color[32] = "No color";
+
+        static struct timeval current_time;
+        gettimeofday(&current_time, NULL);
+        int64_t start_Time = current_time.tv_usec;
+
+        while(GetNewXMegaData(comPort, (int*)color, 1) != VALIDDATA || current_time.tv_usec > start_Time + WAIT_FOR_COLOR);
         strcpy(containers[number_Scanned_Containers].color, color);
         number_Scanned_Containers++;
         return;

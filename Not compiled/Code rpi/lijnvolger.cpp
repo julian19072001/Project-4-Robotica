@@ -11,11 +11,7 @@
 #include <rs232.h>
 #include <LineFollower.hpp>
 #include <container_Detection.hpp>
-
-#define BUFSZ 4096
-#define NODATA 0
-#define VALIDDATA 1
-#define INVALIDDATA -1
+#include <Communication.h> 
 
 #define SEARCH_LINE 0
 #define DRIVE_OVER_GRID 1
@@ -26,6 +22,9 @@
 
 #define COMPORT_DISTANCE 24
 #define COMPORT_LINE 25
+#define COMPORT_COLOR_LEFT 26
+#define COMPORT_COLOR_RIGHT 27
+
 #define NUMBER_VALUES_DISTANCE 2
 #define NUMBER_VALUES_LINE 7
 
@@ -41,7 +40,6 @@
 #define MIN_LINE_CHANGE 340
 
 void exit_signal_handler(int signo);
-int GetNewXMegaData(int comport, int *data_Location, int data_Size);
 
 int main(int nArgc, char* aArgv[]) 
 {
@@ -194,16 +192,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -587,16 +585,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -708,16 +706,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -939,52 +937,4 @@ void exit_signal_handler(int signo)
     printf("\nThe line follower has stopped.\n\n");
     exit(-2);
   }
-}
-
-int GetNewXMegaData(int comport, int *data_Location, int data_Size) 
-{
-  static char sCommBuf[BUFSZ];
-  static int sCommBufLen = 0;
-  int bytesRead = 0, valid = 1, lineRead = 0;
-  
-  do 
-  {
-    bytesRead = RS232_PollComport(comport, (unsigned char *) &sCommBuf[sCommBufLen], 1);
-    if(bytesRead > 0) 
-    {
-      sCommBufLen += bytesRead;
-      sCommBuf[sCommBufLen] = '\0';
-
-      if(sCommBuf[sCommBufLen - 1] == '\n') 
-      {
-        char *here = sCommBuf;
-        
-        for(int i = 0; i < data_Size && valid == 1; i++) 
-        {
-          while(isspace(*here)) here++;
-          if(isdigit(*here)) data_Location[i] = strtol(here, &here, 10);
-          else valid = 0;
-        } 
-
-        if(valid == 1) 
-        {
-          while(isspace(*here)) here++;
-          if(*here != '\0') valid = 0;
-          else lineRead = 1;
-        }
-
-        sCommBufLen = 0; 
-      } 
-      else if(sCommBufLen >= BUFSZ - 1) 
-      {
-        sCommBufLen = 0;
-        valid = 0;
-      }
-    }
-  } 
-  while(bytesRead > 0 && lineRead == 0 && valid == 1);
-
-  if(bytesRead == 0)      return NODATA;
-  else if(lineRead == 1)  return VALIDDATA;
-  else                    return INVALIDDATA;
 }
