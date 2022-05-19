@@ -59,15 +59,15 @@ int main(int nArgc, char* aArgv[])
   int driving_State;
   int last_Junction;
 
-  int y_Direction_Modifier;
-  int y_Pos;
-  int y_Max;
-  int y_Min;
+  int8_t y_Direction_Modifier;
+  int16_t y_Pos;
+  int16_t y_Max;
+  int16_t y_Min;
 
-  int x_Direction_Modifier;
-  int x_Pos;
-  int x_Max;
-  int x_Min;
+  int8_t x_Direction_Modifier;
+  int16_t x_Pos;
+  int16_t x_Max;
+  int16_t x_Min;
 
   static bool side_Scanned;
 
