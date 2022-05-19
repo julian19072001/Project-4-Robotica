@@ -7,7 +7,7 @@
     #include <string.h>
 
     #define MAX_NUMBER_OF_CONTAINERS    25
-    #define MIN_DETECTED 10
+    #define MIN_DETECTED 15
 
     typedef struct Container
     {
@@ -19,6 +19,6 @@
 
     void check_Container_Left(uint8_t left_Distance, char *left_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos);
     void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos);
-    void print_Found_Containers();
+    void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t y_Max);
 
 #endif

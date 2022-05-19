@@ -99,7 +99,7 @@ int main(int nArgc, char* aArgv[])
         int road;
         int what_Doing;
         int distance_Result;
-        bool reached_Y_Min = false;
+        static bool reached_Y_Min = false;
 
         switch(program_State)
         {
@@ -192,16 +192,16 @@ int main(int nArgc, char* aArgv[])
           distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
           if(distance_Result == VALIDDATA && !just_Turned)
           {
-            if((!x_Direction_Modifier && (x_Pos != x_Min || x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min || y_Pos != y_Max)))
+            if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
               check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
               check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
-            else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
               check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
-            else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
               check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
@@ -582,6 +582,23 @@ int main(int nArgc, char* aArgv[])
           break;
           
           case GO_X0:
+          distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
+          if(distance_Result == VALIDDATA && !just_Turned)
+          {
+            if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
+            {
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+          }
           switch(driving_State)
           {
             case STRAIGHT:
@@ -620,7 +637,8 @@ int main(int nArgc, char* aArgv[])
               switch(road)
               {
                 case LINE:
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                if(!just_Turned) follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case CROSS:
@@ -685,6 +703,23 @@ int main(int nArgc, char* aArgv[])
           break;
 
           case GO_Y0:
+          distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
+          if(distance_Result == VALIDDATA && !just_Turned)
+          {
+            if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
+            {
+              check_Container_Right(distance_Data[1], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+            else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
+            {
+              check_Container_Left(distance_Data[0], tempKleur, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+            }
+          }
           switch(driving_State)
           {
             case STRAIGHT:
@@ -721,17 +756,18 @@ int main(int nArgc, char* aArgv[])
             {
               if(y_Pos == y_Min)
               {
-                if(x_Pos == x_Min) driving_State = TURNING_180_RIGHT;
-                else driving_State = TURNING_180;
                 y_Direction_Modifier = 1;
                 reached_Y_Min = true;
+                if(x_Pos == x_Min) driving_State = TURNING_180_RIGHT;
+                else driving_State = TURNING_180;
                 break;
               }
               road = get_Road_Information(line_Data, MIN_LINE_CHANGE);
               switch(road)
               {
                 case LINE:
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                if(!just_Turned) follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
                 break;
 
                 case CROSS:
@@ -755,19 +791,25 @@ int main(int nArgc, char* aArgv[])
                 case SPLIT:
                 printf("Splitsing\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                driving_State = TURNING_180;
+                y_Direction_Modifier = 1;
+                reached_Y_Min = true;
                 break;
 
                 case LEFT_TURN:
                 printf("Bocht links\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                driving_State = TURNING_180;
+                y_Direction_Modifier = 1;
+                reached_Y_Min = true;
                 break;
 
                 case RIGHT_TURN:
                 printf("Bocht rechts\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                driving_State = TURNING_180_RIGHT;
+                y_Direction_Modifier = 1;
+                reached_Y_Min = true;
                 break;
               }
             }
@@ -822,7 +864,7 @@ int main(int nArgc, char* aArgv[])
             if(y_Direction_Modifier == 1 && !just_Turned)
             {
               printf("Einde van programma\n");
-              print_Found_Containers();
+              print_Found_Containers(x_Min, y_Min, x_Max, y_Max);
               reset_Lego();
               exit(-2);
             }
@@ -892,7 +934,7 @@ void exit_signal_handler(int signo)
 {
   if (signo == SIGINT) 
   {
-    print_Found_Containers();
+    print_Found_Containers(0, 0, 0, 0);
     reset_Lego();
     printf("\nThe line follower has stopped.\n\n");
     exit(-2);

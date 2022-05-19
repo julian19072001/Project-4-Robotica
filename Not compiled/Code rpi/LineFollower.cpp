@@ -52,6 +52,8 @@ int turn_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint
 
         if(right_Detected > 1 && (count > (WAIT_SAMPLES * 2)))
         {
+            oLego.set_motor_dps(motor_Left, 0);
+            oLego.set_motor_dps(motor_Right, 0);
             count = 0;
             right_Detected = 0;
             return STRAIGHT;
@@ -83,10 +85,10 @@ int turn_Left(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint1
 
         if(left_Detected > 1 && (count > (WAIT_SAMPLES * 3)))
         {
-            count = 0;
-            left_Detected = 0;
             oLego.set_motor_dps(motor_Left, 0);
             oLego.set_motor_dps(motor_Right, 0);
+            count = 0;
+            left_Detected = 0;
             return STRAIGHT;
         }
         else
@@ -108,7 +110,7 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
     if(count % 3 == 0)
     {
         static int side_Line_Detected = 0;
-        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 50);
         
         if(origin_Line == LEFT)                             side_Line_Detected++; 
 
@@ -116,13 +118,11 @@ int turn_180(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, uint16
         {
             if(turned_90 == true)
             {
-                oLego.set_motor_dps(motor_Left, speed);
-                oLego.set_motor_dps(motor_Right, -speed);
-                usleep(100000);
                 oLego.set_motor_dps(motor_Left, 0);
                 oLego.set_motor_dps(motor_Right, 0);
                 count = 0;
                 side_Line_Detected = 0;
+                turned_90 = false;
                 return STRAIGHT;
             }
             else
@@ -154,7 +154,7 @@ int turn_180_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, 
     if(count % 3 == 0)
     {
         static int side_Line_Detected = 0;
-        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 15);
+        int origin_Line = check_Line_Status(data_Location, (min_Line_Change/2.0) - 50);
         
         if(origin_Line == RIGHT)                             side_Line_Detected++; 
 
@@ -162,11 +162,11 @@ int turn_180_Right(int* data_Location, uint8_t motor_Left, uint8_t motor_Right, 
         {
             if(turned_90 == true)
             {
-                oLego.set_motor_dps(motor_Left, -speed);
-                oLego.set_motor_dps(motor_Right, speed);
-                usleep(100000);
+                oLego.set_motor_dps(motor_Left, 0);
+                oLego.set_motor_dps(motor_Right, 0);
                 count = 0;
                 side_Line_Detected = 0;
+                turned_90 = false;
                 return STRAIGHT;
             }
             else
@@ -201,13 +201,13 @@ int check_Line_Status(int* data_Location, uint16_t min_Line_Change)
   static bool line;
   static uint16_t old_middle[LINE_SAMPLES];
   if(old_middle[LINE_SAMPLES-1] == 0) old_middle[LINE_SAMPLES-1] = 2000;
-  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + (1050)))                       line = false;
-  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - (1050)))                  line = true;
+  if(data_Location[3] > (old_middle[LINE_SAMPLES-1] + (1025)))                       line = false;
+  else if(data_Location[3] < (old_middle[LINE_SAMPLES-1] - (1025)))                  line = true;
   else                                                                                              line = true;
 
   static bool left;
   static uint16_t old_left[LINE_SAMPLES];
-  if((data_Location[0]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))          left = true;
+  if((data_Location[0]) < (old_left[LINE_SAMPLES-1] - min_Line_Change))           left = true;
   else if((data_Location[0] ) > (old_left[LINE_SAMPLES-1] + min_Line_Change))     left = false;
   else                                                                                              left = false;
 

@@ -50,9 +50,13 @@ void check_Container_Left(uint8_t left_Distance, char *left_Color, int8_t x_Dire
 
 void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
-    if(!right_Distance || right_Distance > 30) return;
-    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
     static int right_Detected = 0;
+    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
+    if(!right_Distance)
+    {
+        right_Detected = 0;
+        return;
+    }
     right_Detected++;
     if(right_Detected < MIN_DETECTED) return;
     right_Detected = 0;
@@ -82,13 +86,18 @@ void check_Container_Right(uint8_t right_Distance, char *right_Color, int8_t x_D
     }
 }
 
-void print_Found_Containers()
+void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t y_Max)
 {
     printf("\nGevonden containers:\n");
     for(int i = 0; i < number_Scanned_Containers; i++)
     {
+        int x_Pos = containers[i].x_Pos - x_Min;
+        int y_Pos = containers[i].y_Pos - y_Min;
+        int x_Length = x_Max - x_Min;
+        int y_Length = y_Max - y_Min;
         printf("Container: %d\n", i + 1);
-        printf("Coördinaat: (%d,%d)\n", containers[i].x_Pos, containers[i].y_Pos);
+        printf("%d\n", ((y_Length - y_Pos) * x_Length) + x_Pos);
+        //printf("Coördinaat: (%d,%d)\n", containers[i].x_Pos, containers[i].y_Pos);
         printf("Kleur: %s\n\n", containers[i].color);
     } 
 }
