@@ -5,10 +5,21 @@
 #include <avr/interrupt.h>
 #include "serialF0.h"
 #include "clock.h"
-#include "Kleur_arrays.h"
+#include "spi.h"
+//#include "Kleur_arrays.h"
 
 #define SAMPLES 8                     //number of samples used to create an average
 #define SAMPLE_DELAY 1                //time in milliseconds between samples
+
+#define SHFT_LATCH_bm   PIN4_bm 
+
+// Defines for led control
+#define RED     0x11
+#define GREEN   0x22
+#define BLUE    0x44
+#define WHITE   0x77
+#define BLACK   0x00
+#define IR      0x88
 
 typedef struct measurements
 {
@@ -25,36 +36,92 @@ measurements_t;
 static measurements_t result;
 static measurements_t zero;
 
+volatile uint16_t reset_d75, reset_d72, reset_d69, reset_d66, reset_d63, reset_d60, reset_d57;
+volatile uint8_t sample_count;
+
 void init_Line_Follower(void);
 void init_Timer(void);
-void color_Line_Follower(void);
-void line_Follower_Off(void);
+void stop_Timer(void);
+void leds_reset(void);
+void leds_front(uint8_t color);
+void leds_latch_data(void);
 void get_Zero(void);
 
 int16_t control_Result(volatile int16_t* result);
 
 int main(void) 
 {
-  init_Line_Follower();
-	init_Timer();
-	init_clock();
+  uint8_t command;
+
+	//init_Timer();
+  init_clock();
+  spi_init();
 	init_stream(F_CPU);
 
-	sei(); 
+  PORTE_DIRSET = PIN4_bm;		// LAT
+	PORTE_DIRSET = PIN3_bm;		// BLANK
+  
+  init_Line_Follower();
+	
+  sei(); 
+
+  leds_front(RED);
 
 	while (1) 
 	{	
     measurements_t final;
-    final.d75 = control_Result(&result.d75) - zero.d75;
-    final.d72 = control_Result(&result.d72) - zero.d72;
-    final.d69 = control_Result(&result.d69) - zero.d69;
-    final.d66 = control_Result(&result.d66) - zero.d66;
-    final.d63 = control_Result(&result.d63) - zero.d63;
-    final.d60 = control_Result(&result.d60) - zero.d60;
-    final.d57 = control_Result(&result.d57) - zero.d57;
+
+    if (CanRead_F0()) {
+      scanf("%c", &command);
+    }
     
-    printf(" %d %d %d %d %d %d %d\n", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
-    _delay_ms(1);
+    if (command == 's') {
+      init_Timer();
+      _delay_ms(3);
+  
+      final.d75 = control_Result(&result.d75) - zero.d75;
+      final.d72 = control_Result(&result.d72) - zero.d72;
+      final.d69 = control_Result(&result.d69) - zero.d69;
+      final.d66 = control_Result(&result.d66) - zero.d66;
+      final.d63 = control_Result(&result.d63) - zero.d63;
+      final.d60 = control_Result(&result.d60) - zero.d60;
+      final.d57 = control_Result(&result.d57) - zero.d57;
+
+      leds_front(RED);
+      printf(" %d %d %d %d %d %d %d\n", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
+      
+
+    } else if (command == 'd') {
+      _delay_us(100);
+      leds_front(BLACK);
+
+      init_Timer();
+      while (sample_count < 2) {}
+      zero.d75 = control_Result(&result.d75);
+      zero.d72 = control_Result(&result.d72);
+      zero.d69 = control_Result(&result.d69);
+      zero.d66 = control_Result(&result.d66);
+      zero.d63 = control_Result(&result.d63);
+      zero.d60 = control_Result(&result.d60);
+      zero.d57 = control_Result(&result.d57);
+      stop_Timer();
+
+      _delay_us(100);
+      leds_front(RED);
+
+      init_Timer();
+      while (sample_count < 2) {}
+      final.d75 = control_Result(&result.d75) - zero.d75;
+      final.d72 = control_Result(&result.d72) - zero.d72;
+      final.d69 = control_Result(&result.d69) - zero.d69;
+      final.d66 = control_Result(&result.d66) - zero.d66;
+      final.d63 = control_Result(&result.d63) - zero.d63;
+      final.d60 = control_Result(&result.d60) - zero.d60;
+      final.d57 = control_Result(&result.d57) - zero.d57;
+      stop_Timer();
+      printf(" %d %d %d %d %d %d %d\t", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
+      printf(" %d %d %d %d %d %d %d\n", zero.d75, zero.d72, zero.d69, zero.d66, zero.d63, zero.d60, zero.d57);
+    }
 	}
 }
 
@@ -63,6 +130,12 @@ ISR(ADCA_CH0_vect)
 {
   static uint8_t n_d75 = 0;
   static int16_t sum_d75 = 0;
+
+  if(reset_d75 == 1){
+    n_d75 = 0;
+    sum_d75 = 0;
+    reset_d75 = 0;
+  }
 
   if(n_d75 & 0x01) 
   {                  		    //second (even) measurement
@@ -81,6 +154,7 @@ ISR(ADCA_CH0_vect)
     result.d75 = sum_d75/SAMPLES;
     sum_d75 = 0;
     n_d75 = 0;
+    sample_count++;
   }
 }
 
@@ -89,6 +163,12 @@ ISR(ADCA_CH1_vect)
 {
   static uint8_t n_d72 = 0;
   static int16_t sum_d72 = 0;
+
+  if(reset_d72 == 1){
+    n_d72 = 0;
+    sum_d72 = 0;
+    reset_d72 = 0;
+  }
 
   if(n_d72 & 0x01) 
   {                  		//second (even) measurement
@@ -116,6 +196,12 @@ ISR(ADCA_CH2_vect)
   static uint8_t n_d69 = 0;
   static int16_t sum_d69 = 0;
 
+  if(reset_d69 == 1){
+    n_d69 = 0;
+    sum_d69 = 0;
+    reset_d69 = 0;
+  }
+
   if(n_d69 & 0x01) 
   {                  		    //second (even) measurement
     sum_d69 -= ADCA.CH2.RES;
@@ -142,6 +228,11 @@ ISR(ADCB_CH0_vect)
   static uint8_t n_d66 = 0;
   static int16_t sum_d66 = 0;	
 
+  if(reset_d66 == 1){
+    n_d66 = 0;
+    sum_d66 = 0;
+    reset_d66 = 0;
+  }
 
   if(n_d66 & 0x01) 
   {                  		//second (even) measurement
@@ -169,6 +260,12 @@ ISR(ADCB_CH1_vect)
   static uint8_t n_d63 = 0;
   static int16_t sum_d63 = 0;
 
+  if(reset_d63 == 1){
+    n_d63 = 0;
+    sum_d63 = 0;
+    reset_d63 = 0;
+  }
+
   if(n_d63 & 0x01) 
   {                  		    //second (even) measurement
     sum_d63 -= ADCB.CH1.RES;
@@ -195,6 +292,12 @@ ISR(ADCB_CH2_vect)
   static uint8_t n_d60 = 0;
   static int16_t sum_d60 = 0;
 
+  if(reset_d60 == 1){
+    n_d60 = 0;
+    sum_d60 = 0;
+    reset_d60 = 0;
+  }
+
   if(n_d60 & 0x01) 
   {                  		//second (even) measurement
     sum_d60 -= ADCB.CH2.RES;
@@ -220,6 +323,12 @@ ISR(ADCB_CH3_vect)
 {
   static uint8_t n_d57 = 0;
   static int16_t sum_d57 = 0;
+
+  if(reset_d57 == 1){
+    n_d57 = 0;
+    sum_d57 = 0;
+    reset_d57 = 0;
+  }
 /*
   if(n_d57 & 0x01) 
   {                  		    //second (even) measurement
@@ -242,6 +351,12 @@ ISR(ADCB_CH3_vect)
   }
 }
 
+void leds_latch_data(void)
+{
+	PORTE.OUTSET = SHFT_LATCH_bm;
+	PORTE.OUTCLR = SHFT_LATCH_bm;
+}
+
 void init_Line_Follower(void)
 {
 	PORTE_DIRSET = PIN7_bm;		// SIN
@@ -250,7 +365,7 @@ void init_Line_Follower(void)
 	PORTE_DIRSET = PIN4_bm;		// LAT
 	PORTE_DIRSET = PIN3_bm;		// BLANK
 
-  line_Follower_Off();
+  leds_reset();
 	
 	////////////////////////////////////////
 
@@ -316,22 +431,88 @@ void init_Line_Follower(void)
 
   _delay_ms(10);
   
-  get_Zero();
-  color_Line_Follower();
+  //get_Zero();
+
+  leds_front(WHITE);
+}
+
+void leds_reset (void) {
+  PORTE_OUTSET = PIN3_bm;		// BLANK high
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+	
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+
+	leds_latch_data();
+
+	PORTE_OUTCLR = PIN3_bm;		// BLANK high
+}
+
+void leds_front(uint8_t color) {
+  PORTE_OUTSET = PIN3_bm;		// BLANK high
+
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+  
+  spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte	
+
+	spi_transfer(color);   // transfer low byte
+	spi_transfer(color);   // transfer low byte
+	
+	spi_transfer(color);   // transfer low byte
+	spi_transfer(color);   // transfer low byte	
+
+	spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+
+  spi_transfer(0x00);   // transfer low byte
+	spi_transfer(0x00);   // transfer low byte
+
+	leds_latch_data();
+
+	PORTE_OUTCLR = PIN3_bm;		// BLANK high
 }
 
 void init_Timer(void)
 {
-  TCE0.PER      = 125 * SAMPLE_DELAY;     					              //Tper =  256 * ((SAMPLE_DELAY * 125) +1) / 32M = convererts predefined time as milliseconds
-  TCE0.CTRLA    = TC_CLKSEL_DIV256_gc;                            //Prescaling 256
+  reset_d75 = 1, reset_d72 = 1, 
+  reset_d69 = 1, reset_d66 = 1, 
+  reset_d63 = 1, reset_d60 = 1, 
+  reset_d57 = 1; sample_count = 0;
+
+  TCE0.PER      = 50 * SAMPLE_DELAY;     					              //Tper =  256 * ((SAMPLE_DELAY * 125) +1) / 32M = convererts predefined time as milliseconds
+  TCE0.CTRLA    = TC_CLKSEL_DIV64_gc;                            //Prescaling 256
   TCE0.CTRLB    = TC_WGMODE_NORMAL_gc;          	                //Normal mode
   TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	                  //Interrupt overflow off
 }
 
+void stop_Timer(void)
+{
+	TCE0.CTRLA    = TC_CLKSEL_OFF_gc;			// timer/counter off
+	TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;		// disables overflow interrupt
+}
+
 void get_Zero(void)
 {
-  line_Follower_Off();
+  leds_front(BLACK);
 
+  //init_Timer();
+  while (sample_count < 2) {}
   zero.d75 = control_Result(&result.d75);
   zero.d72 = control_Result(&result.d72);
   zero.d69 = control_Result(&result.d69);
@@ -339,41 +520,7 @@ void get_Zero(void)
   zero.d63 = control_Result(&result.d63);
   zero.d60 = control_Result(&result.d60);
   zero.d57 = control_Result(&result.d57);
-}
-
-void line_Follower_Off(void)
-{
-  PORTE_OUTCLR = PIN7_bm;		// SIN low
-	PORTE_OUTSET = PIN3_bm;		// BLANK high
-
-  // 96 pulses on SCLK
-	for (int i = 0; i < 96; i++) 
-	{
-		PORTE_OUTSET = PIN5_bm;
-		PORTE_OUTCLR = PIN5_bm;
-	}
-	
-	// 1 puls op LAT
-	PORTE_OUTSET = PIN4_bm;
-	PORTE_OUTCLR = PIN4_bm;
-}
-
-void color_Line_Follower(void)
-{
-	for (int i = 0; i < 96; i++) 
-	{
-		if (led_out_red[i] == 1) PORTE_OUTSET = PIN7_bm;
-		else PORTE_OUTCLR = PIN7_bm;
-		
-		PORTE_OUTSET = PIN5_bm;
-		PORTE_OUTCLR = PIN5_bm;
-	}
-	
-	// 1 puls op LAT
-	PORTE_OUTSET = PIN4_bm;
-	PORTE_OUTCLR = PIN4_bm;
-	
-	PORTE_OUTCLR = PIN3_bm;		// BLANK low
+  stop_Timer();
 }
 
 int16_t control_Result(volatile int16_t* result)
