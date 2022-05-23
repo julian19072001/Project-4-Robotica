@@ -62,66 +62,44 @@ int main(void)
 	PORTE_DIRSET = PIN3_bm;		// BLANK
   
   init_Line_Follower();
-	
-  sei(); 
 
   leds_front(RED);
+	
+  sei();
 
 	while (1) 
 	{	
     measurements_t final;
 
-    if (CanRead_F0()) {
-      scanf("%c", &command);
-    }
-    
-    if (command == 's') {
-      init_Timer();
-      _delay_ms(3);
-  
-      final.d75 = control_Result(&result.d75) - zero.d75;
-      final.d72 = control_Result(&result.d72) - zero.d72;
-      final.d69 = control_Result(&result.d69) - zero.d69;
-      final.d66 = control_Result(&result.d66) - zero.d66;
-      final.d63 = control_Result(&result.d63) - zero.d63;
-      final.d60 = control_Result(&result.d60) - zero.d60;
-      final.d57 = control_Result(&result.d57) - zero.d57;
+    //leds_front(BLACK);
+    PORTE.OUTCLR = SPI_SS_bm;
+    init_Timer();
+    while (sample_count < 2) {}
+    zero.d75 = control_Result(&result.d75);
+    zero.d72 = control_Result(&result.d72);
+    zero.d69 = control_Result(&result.d69);
+    zero.d66 = control_Result(&result.d66);
+    zero.d63 = control_Result(&result.d63);
+    zero.d60 = control_Result(&result.d60);
+    zero.d57 = control_Result(&result.d57);
+    stop_Timer();
+    _delay_us(800);
 
-      leds_front(RED);
-      printf(" %d %d %d %d %d %d %d\n", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
-      
+    //leds_front(RED);
+    PORTE.OUTSET = SPI_SS_bm;
+    init_Timer();
+    while (sample_count < 2) {}
+    final.d75 = control_Result(&result.d75) - zero.d75;
+    final.d72 = control_Result(&result.d72) - zero.d72;
+    final.d69 = control_Result(&result.d69) - zero.d69;
+    final.d66 = control_Result(&result.d66) - zero.d66;
+    final.d63 = control_Result(&result.d63) - zero.d63;
+    final.d60 = control_Result(&result.d60) - zero.d60;
+    final.d57 = control_Result(&result.d57) - zero.d57;
+    stop_Timer();
+    _delay_us(8+00);
 
-    } else if (command == 'd') {
-      _delay_us(100);
-      leds_front(BLACK);
-
-      init_Timer();
-      while (sample_count < 2) {}
-      zero.d75 = control_Result(&result.d75);
-      zero.d72 = control_Result(&result.d72);
-      zero.d69 = control_Result(&result.d69);
-      zero.d66 = control_Result(&result.d66);
-      zero.d63 = control_Result(&result.d63);
-      zero.d60 = control_Result(&result.d60);
-      zero.d57 = control_Result(&result.d57);
-      stop_Timer();
-
-      _delay_us(100);
-      leds_front(RED);
-
-      init_Timer();
-      while (sample_count < 2) {}
-      final.d75 = control_Result(&result.d75) - zero.d75;
-      final.d72 = control_Result(&result.d72) - zero.d72;
-      final.d69 = control_Result(&result.d69) - zero.d69;
-      final.d66 = control_Result(&result.d66) - zero.d66;
-      final.d63 = control_Result(&result.d63) - zero.d63;
-      final.d60 = control_Result(&result.d60) - zero.d60;
-      final.d57 = control_Result(&result.d57) - zero.d57;
-      stop_Timer();
-      printf(" %d %d %d %d %d %d %d\t", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
-      printf(" %d %d %d %d %d %d %d\n", zero.d75, zero.d72, zero.d69, zero.d66, zero.d63, zero.d60, zero.d57);
-    }
+    printf(" %d %d %d %d %d %d %d\n", final.d75, final.d72, final.d69, final.d66, final.d63, final.d60, final.d57);
 	}
 }
 
@@ -429,11 +407,7 @@ void init_Line_Follower(void)
 
   ////////////////////////////////////////
 
-  _delay_ms(10);
-  
-  //get_Zero();
-
-  leds_front(WHITE);
+  leds_front(RED);
 }
 
 void leds_reset (void) {
