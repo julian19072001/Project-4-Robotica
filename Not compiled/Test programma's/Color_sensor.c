@@ -130,7 +130,7 @@ int main(void)
         break;
       }
 
-      printf("\nRed %5d | Green %5d | Blue %5d | Cal %5d\n\n", rgb[1], rgb[2], rgb[3], rgb[0]);
+      // printf("\nRed %5d | Green %5d | Blue %5d | Cal %5d\n\n", rgb[1], rgb[2], rgb[3], rgb[0]);
 
       leds_reset();
       memset(rgb_poll, 0, sizeof(rgb_poll));
