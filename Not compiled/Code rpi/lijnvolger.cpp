@@ -11,7 +11,12 @@
 #include <rs232.h>
 #include <LineFollower.hpp>
 #include <container_Detection.hpp>
-#include <Communication.h> 
+#include <Communication.h>
+
+#define BUFSZ 4096
+#define NODATA 0
+#define VALIDDATA 1
+#define INVALIDDATA -1
 
 #define SEARCH_LINE 0
 #define DRIVE_OVER_GRID 1
@@ -22,11 +27,8 @@
 
 #define COMPORT_DISTANCE 24
 #define COMPORT_LINE 25
-#define COMPORT_LEFT 26
-#define COMPORT_RIGHT 27 
-
-#define COMPORT_COLOR_LEFT 26
-#define COMPORT_COLOR_RIGHT 27
+#define COMPORT_LEFT 27
+#define COMPORT_RIGHT 26
 
 #define NUMBER_VALUES_DISTANCE 2
 #define NUMBER_VALUES_LINE 7
@@ -36,7 +38,7 @@
 #define MAX_SPEED       -500
 #define TURNING_SPEED   -105
 
-#define SETPOINT    0       // The goal for readLine (center)
+#define SETPOINT    770       // The goal for readLine (center)
 #define KP          0.018  // The P value in PID
 #define KD          2       // The D value in PID
 
@@ -53,28 +55,36 @@ int main(int nArgc, char* aArgv[])
   
   int commIsOpen1 = 0;
   int commIsOpen2 = 0;
+  //int commIsOpen3 = 0;
+  //int commIsOpen4 = 0;
 
   commIsOpen1 = !RS232_OpenComport(COMPORT_LINE, 115200, "8N1", 0);
   commIsOpen2 = !RS232_OpenComport(COMPORT_DISTANCE, 115200, "8N1", 0);
+  //commIsOpen3 = !RS232_OpenComport(COMPORT_RIGHT, 115200, "8N1", 0);
+  //commIsOpen4 = !RS232_OpenComport(COMPORT_LEFT, 115200, "8N1", 0);
   sleep(1);
 
   int program_State = SEARCH_LINE;
   int driving_State;
   int last_Junction;
 
-  int8_t y_Direction_Modifier;
-  int16_t y_Pos;
-  int16_t y_Max;
-  int16_t y_Min;
+  int y_Direction_Modifier;
+  int y_Pos;
+  int y_Max = 0;
+  int y_Min = 0;
 
-  int8_t x_Direction_Modifier;
-  int16_t x_Pos;
-  int16_t x_Max;
-  int16_t x_Min;
+  int x_Direction_Modifier;
+  int x_Pos;
+  int x_Max = 0;
+  int x_Min = 0;
 
   static bool side_Scanned;
 
-  char tempKleur[] = "unread";
+  for(int i = 0; i > 100; i++)
+  {
+    int trash = GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
+    usleep(10000);
+  }
   
   while(1) 
   { 
@@ -88,12 +98,22 @@ int main(int nArgc, char* aArgv[])
       printf("Can not open COM%d for distance reader\nExit Program\n", COMPORT_DISTANCE);
       exit(-2);
     }
+    /*if (!commIsOpen3) 
+    {
+      printf("Can not open COM%d for right\nExit Program\n", COMPORT_RIGHT);
+      exit(-2);
+    }
+    if (!commIsOpen4) 
+    {
+      printf("Can not open COM%d for left\nExit Program\n", COMPORT_LEFT);
+      exit(-2);
+    }*/
     if(commIsOpen1 && commIsOpen2)
     {
       int line_Result = GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
       if(line_Result == VALIDDATA) 
       {
-        static int just_Turned = 0;
+        static int just_Turned = 1;
         if(just_Turned > 0) just_Turned++;
         if(just_Turned > WAIT_SAMPLES*4) just_Turned = 0;
 
@@ -109,10 +129,11 @@ int main(int nArgc, char* aArgv[])
           switch(road)
           {
             case LINE:
-            follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            if(!just_Turned) follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+            else follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, TURNING_SPEED, MIN_LINE_CHANGE);
             break;
 
-            case CROSS:
+            case CROSS: 
             printf("Kruising\n");
             x_Pos = 0;
             y_Pos = 1;
@@ -195,16 +216,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -322,11 +343,13 @@ int main(int nArgc, char* aArgv[])
               {
                 if(y_Direction_Modifier == 1)
                 {
+                  y_Max = y_Pos;
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
                 }
                 else
                 {
+                  y_Min = y_Pos;
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
                 }
@@ -341,6 +364,8 @@ int main(int nArgc, char* aArgv[])
               }
               else
               {
+                if(x_Direction_Modifier == 1) x_Max = x_Pos;
+                else x_Min = x_Pos;
                 if(x_Pos % 2 == 0)
                 {
                   if(x_Direction_Modifier == 1)
@@ -361,7 +386,6 @@ int main(int nArgc, char* aArgv[])
                   {
                     reset_Lego();
                     program_State = GO_HOME;
-                    x_Min = x_Pos;
                     printf("Going home\n");
                   }
                   else
@@ -369,7 +393,6 @@ int main(int nArgc, char* aArgv[])
                     x_Direction_Modifier = -1;
                     driving_State = TURNING_180;
                     side_Scanned = true;
-                    x_Max = x_Pos;
                   }
                 }
               }
@@ -384,11 +407,13 @@ int main(int nArgc, char* aArgv[])
               {
                 if(y_Direction_Modifier == 1)
                 {
+                  y_Max = y_Pos;
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
                 }
                 else
                 {
+                  y_Min = y_Pos;
                   x_Direction_Modifier = -1;
                   y_Direction_Modifier = 0;
                 }
@@ -402,6 +427,8 @@ int main(int nArgc, char* aArgv[])
               }
               else
               {
+                if(x_Direction_Modifier == 1) x_Max = x_Pos;
+                else x_Min = x_Pos;
                 if(x_Pos % 2 == 0)
                 {
                   if(x_Direction_Modifier == 1)
@@ -427,8 +454,8 @@ int main(int nArgc, char* aArgv[])
                   }
                   else
                   {
-                    side_Scanned = true;
                     x_Max = x_Pos;
+                    side_Scanned = true;
                     x_Direction_Modifier = -1;
                     driving_State = TURNING_180_RIGHT;
                   }
@@ -588,16 +615,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -649,15 +676,21 @@ int main(int nArgc, char* aArgv[])
                 break;
 
                 case OPTION_LEFT:
-                printf("Splitsing links\n");
-                x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                if(!just_Turned)
+                {
+                  printf("Splitsing links\n");
+                  x_Pos += (1 * x_Direction_Modifier);
+                  follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                }
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing rechts\n");
-                x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                if(!just_Turned)
+                {
+                  printf("Splitsing rechts\n");
+                  x_Pos += (1 * x_Direction_Modifier);
+                  follow_Line(line_Data, SETPOINT, KP, KD, MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, MIN_LINE_CHANGE);
+                }
                 break;
 
                 case SPLIT:
@@ -709,16 +742,16 @@ int main(int nArgc, char* aArgv[])
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Max) || (x_Direction_Modifier == -1 && y_Pos == y_Min) || (y_Direction_Modifier == 1 && x_Pos == x_Min) || (y_Direction_Modifier == -1 && x_Pos == x_Max))
             {
-              check_Container_Right(distance_Data[1], COMPORT_COLOR_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Right(distance_Data[1], COMPORT_RIGHT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
             else if((x_Direction_Modifier == 1 && y_Pos == y_Min) || (x_Direction_Modifier == -1 && y_Pos == y_Max) || (y_Direction_Modifier == 1 && x_Pos == x_Max) || (y_Direction_Modifier == -1 && x_Pos == x_Min))
             {
-              check_Container_Left(distance_Data[0], COMPORT_COLOR_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
+              check_Container_Left(distance_Data[0], COMPORT_LEFT, x_Direction_Modifier, x_Pos, y_Direction_Modifier, y_Pos);
             }
           }
           switch(driving_State)
@@ -755,7 +788,7 @@ int main(int nArgc, char* aArgv[])
             }
             else
             {
-              if(y_Pos == y_Min)
+              if(y_Pos == y_Min && reached_Y_Min == false)
               {
                 y_Direction_Modifier = 1;
                 reached_Y_Min = true;
@@ -871,21 +904,18 @@ int main(int nArgc, char* aArgv[])
             }
             if(y_Direction_Modifier == -1 && !just_Turned)
             {
-              printf("Y-\n");
               driving_State = TURNING_180;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == 1 && !just_Turned)
             {
-              printf("X+\n");
               driving_State = TURNING_LEFT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;
             }
             if(x_Direction_Modifier == -1 && !just_Turned)
             {
-              printf("X-\n");
               driving_State = TURNING_RIGHT;
               y_Direction_Modifier = 1;
               x_Direction_Modifier = 0;

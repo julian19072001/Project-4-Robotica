@@ -6,17 +6,19 @@
     #include <stdint.h>
     #include <string.h>
     #include <sys/time.h>
-    #include "Communication.h" 
+    #include "Communication.h"
 
     #define MAX_NUMBER_OF_CONTAINERS    25
-    #define MIN_DETECTED 15
-    #define WAIT_FOR_COLOR 100000
+    #define MIN_DETECTED 10
+    #define WAIT_FOR_COLOR 500000
+
+    #define MAX_DISTANCE 30
 
     typedef struct Container
     {
         int16_t x_Pos;
         int16_t y_Pos;
-        char color[16];
+        int16_t color;
     } 
     Container_t;
 
