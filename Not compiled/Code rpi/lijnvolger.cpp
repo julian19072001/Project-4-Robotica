@@ -12,6 +12,8 @@
 #include <LineFollower.hpp>
 #include <container_Detection.hpp>
 #include <Communication.h>
+#include <time.h>
+#include <sys/time.h>
 
 #define BUFSZ 4096
 #define NODATA 0
@@ -40,7 +42,7 @@
 
 #define SETPOINT    770       // The goal for readLine (center)
 #define KP          0.018  // The P value in PID
-#define KD          2       // The D value in PID
+#define KD          1       // The D value in PID
 
 #define MIN_LINE_CHANGE 340
 
@@ -49,7 +51,6 @@ void exit_signal_handler(int signo);
 int main(int nArgc, char* aArgv[]) 
 {
   signal(SIGINT, exit_signal_handler);
-  
   int line_Data[NUMBER_VALUES_LINE];
   int distance_Data[NUMBER_VALUES_DISTANCE];
   
@@ -109,12 +110,13 @@ int main(int nArgc, char* aArgv[])
       exit(-2);
     }*/
     if(commIsOpen1 && commIsOpen2)
-    {
+    {    
       int line_Result = GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
       if(line_Result == VALIDDATA) 
       {
         static int just_Turned = 1;
         if(just_Turned > 0) just_Turned++;
+        
         if(just_Turned > WAIT_SAMPLES*4) just_Turned = 0;
 
         int road;
@@ -212,7 +214,7 @@ int main(int nArgc, char* aArgv[])
 
           case DRIVE_OVER_GRID:
           distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
-          if(distance_Result == VALIDDATA && !just_Turned)
+          if(distance_Result == VALIDDATA && !just_Turned && (x_Max || x_Min || y_Max || y_Min))
           {
             if((!x_Direction_Modifier && (x_Pos != x_Min && x_Pos != x_Max)) || (!y_Direction_Modifier && (y_Pos != y_Min && y_Pos != y_Max)))
             {
@@ -791,6 +793,7 @@ int main(int nArgc, char* aArgv[])
               if(y_Pos == y_Min && reached_Y_Min == false)
               {
                 y_Direction_Modifier = 1;
+                y_Pos = y_Min;
                 reached_Y_Min = true;
                 if(x_Pos == x_Min) driving_State = TURNING_180_RIGHT;
                 else driving_State = TURNING_180;

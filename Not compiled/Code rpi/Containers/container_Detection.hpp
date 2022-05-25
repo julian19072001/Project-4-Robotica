@@ -9,7 +9,7 @@
     #include "Communication.h"
 
     #define MAX_NUMBER_OF_CONTAINERS    25
-    #define MIN_DETECTED 10
+    #define MIN_DETECTED 15
     #define WAIT_FOR_COLOR 500000
 
     #define MAX_DISTANCE 30

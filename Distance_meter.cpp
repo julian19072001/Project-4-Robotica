@@ -18,7 +18,7 @@ int main(void)
     init_clock();
     init_stream(F_CPU);
     
-    Ultrasonic left(40, 0, &PORTD, PIN0_bm, PIN1_bm);
+    Ultrasonic left(40, 0, &PORTD, PIN5_bm, PIN6_bm);
     Ultrasonic right(40, 0, &PORTD, PIN2_bm, PIN3_bm);
 
 	while (1) {
