@@ -3,18 +3,18 @@
 #define IS_THERE        0
 #define IS_NOT_THERE    1
 
-Container_t containers[MAX_NUMBER_OF_CONTAINERS];
+static Container_t containers[MAX_NUMBER_OF_CONTAINERS];
 
 static uint8_t number_Scanned_Containers = 0;
 
 void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort);
 int check_If_There(int16_t x_Pos, int16_t y_Pos);
 
-void check_Container_Left(uint8_t left_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
+void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
     static int left_Detected = 0;
-    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
-    if(!left_Distance || ((left_Distance > MAX_DISTANCE) && left_Detected == 0))
+    if(number_Scanned_Containers > MAX_NUMBER_OF_CONTAINERS) return;
+    if(!left_Distance || ((left_Distance > max_Distance) && left_Detected == 0))
     {
         left_Detected = 0;
         return;
@@ -52,11 +52,11 @@ void check_Container_Left(uint8_t left_Distance, int comPort, int8_t x_Direction
     }
 }
 
-void check_Container_Right(uint8_t right_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
+void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
     static int right_Detected = 0;
-    if(number_Scanned_Containers >= MAX_NUMBER_OF_CONTAINERS) return;
-    if(!right_Distance || ((right_Distance > MAX_DISTANCE) && right_Detected == 0))
+    if(number_Scanned_Containers > MAX_NUMBER_OF_CONTAINERS) return;
+    if(!right_Distance || ((right_Distance > max_Distance) && right_Detected == 0))
     {
         right_Detected = 0;
         return;

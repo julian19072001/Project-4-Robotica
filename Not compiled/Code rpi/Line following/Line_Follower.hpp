@@ -1,5 +1,5 @@
-#ifndef LINEFOLLOWER_HPP
-#define LINEFOLLOWER_HPP
+#ifndef LINE_FOLLOWER_HPP
+#define LINE_FOLLOWER_HPP
 
     #include <legorpi.hpp>
     #include <unistd.h>

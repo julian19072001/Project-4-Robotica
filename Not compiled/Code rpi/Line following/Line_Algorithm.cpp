@@ -42,8 +42,8 @@ int algorithm::search_Line()
     switch(road)
     {
         case LINE:
-        if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
-        else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+        if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+        else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
         break;
 
         case CROSS: 
@@ -112,15 +112,15 @@ int algorithm::drive_Over_Grid()
         switch(road)
         {
             case LINE:
-            if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
-            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+            if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             break;
 
             case CROSS:
             printf("Kruising\n");
             x_Pos += (1 * x_Direction_Modifier);
             y_Pos += (1 * y_Direction_Modifier);
-            follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+            follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             break;
 
             case OPTION_LEFT:
@@ -143,9 +143,9 @@ int algorithm::drive_Over_Grid()
                         y_Direction_Modifier = -1;
                     }
                 }
-                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             }
-            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             break;
 
             case OPTION_RIGHT:
@@ -168,9 +168,9 @@ int algorithm::drive_Over_Grid()
                         y_Direction_Modifier = 1;
                     }
                 }
-                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             }
-            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+            else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
             break;
 
             case SPLIT:
@@ -486,14 +486,14 @@ int algorithm::go_X0()
             switch(road)
             {
                 case LINE:
-                if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
-                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case CROSS:
                 printf("Kruising\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case OPTION_LEFT:
@@ -501,7 +501,7 @@ int algorithm::go_X0()
                 {
                     printf("Splitsing links\n");
                     x_Pos += (1 * x_Direction_Modifier);
-                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 }
                 break;
 
@@ -510,26 +510,26 @@ int algorithm::go_X0()
                 {
                     printf("Splitsing rechts\n");
                     x_Pos += (1 * x_Direction_Modifier);
-                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 }
                 break;
 
                 case SPLIT:
                 printf("Splitsing\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case LEFT_TURN:
                 printf("Bocht links\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case RIGHT_TURN:
                 printf("Bocht rechts\n");
                 x_Pos += (1 * x_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
             }
         }
@@ -598,26 +598,26 @@ int algorithm::go_Y0()
             switch(road)
             {
                 case LINE:
-                if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
-                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                if(!just_Turned) follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                else follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, turning_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case CROSS:
                 printf("Kruising\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case OPTION_LEFT:
                 printf("Splitsing links\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case OPTION_RIGHT:
                 printf("Splitsing rechts\n");
                 y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, line_Samples_c);
+                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
                 break;
 
                 case SPLIT:
@@ -735,7 +735,7 @@ void algorithm::setup_PID(int* data_Location, int goal, float error_Gain, uint8_
     rate_Of_Change_c = rate_Of_Change;
 }
 
-void algorithm::setup_Samples(uint16_t line_Samples, uint16_t wait_Samples)
+void algorithm::setup_Samples(const uint16_t line_Samples, uint16_t wait_Samples)
 {
     line_Samples_c = line_Samples;
     wait_Samples_c = wait_Samples;

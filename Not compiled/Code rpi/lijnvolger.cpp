@@ -8,28 +8,30 @@
 #include <Communication.h>
 #include <Line_Algorithm.hpp>
 
-#define COMPORT_DISTANCE        24
-#define COMPORT_LINE            25
-#define COMPORT_LEFT            27
-#define COMPORT_RIGHT           26
+#define COMPORT_DISTANCE         24
+#define COMPORT_LINE             25
+#define COMPORT_LEFT             27
+#define COMPORT_RIGHT            26
 
-#define NUMBER_VALUES_DISTANCE  2
-#define NUMBER_VALUES_LINE      7
+#define NUMBER_VALUES_DISTANCE   2
+#define NUMBER_VALUES_LINE       7
 
-#define MOTOR_LEFT              PORT6_MA
-#define MOTOR_RIGHT             PORT5_MB
-#define MAX_SPEED               500
-#define TURNING_SPEED           105
+#define MOTOR_LEFT               PORT6_MA
+#define MOTOR_RIGHT              PORT5_MB
+#define MAX_SPEED                500
+#define TURNING_SPEED            105
 
-#define SETPOINT                770    // The goal for readLine (center)
-#define KP                      0.018  // The P value in PID
-#define KD                      1      // The D value in PID
+#define SETPOINT                 770    // The goal for readLine (center)
+#define KP                       0.018  // The P value in PID
+#define KD                       1      // The D value in PID
 
-#define MIN_SIDE_LINE_CHANGE    340
-#define MIN_MID_LINE_CHANGE     1025
+#define MIN_SIDE_LINE_CHANGE     340
+#define MIN_MID_LINE_CHANGE      1025
 
-#define LINE_SAMPLES            20
-#define WAIT_SAMPLES            115
+#define LINE_SAMPLES             20
+#define WAIT_SAMPLES             115
+
+#define MAX_CONTAINER_DISTANCE   30
 
 static int distance_Data[NUMBER_VALUES_DISTANCE];
 
@@ -72,7 +74,7 @@ int main(int nArgc, char* aArgv[])
 
   for(int i = 0; i > 100; i++)
   {
-    int trash = GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
+    GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
     usleep(10000);
   }
 
@@ -129,16 +131,16 @@ void distance_Reading()
     {
         if((!follower.x_Direction_Modifier && (follower.x_Pos != follower.x_Min && follower.x_Pos != follower.x_Max)) || (!follower.y_Direction_Modifier && (follower.y_Pos != follower.y_Min && follower.y_Pos != follower.y_Max)))
         {
-            check_Container_Left(distance_Data[0], COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
-            check_Container_Right(distance_Data[1], COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
         }
         else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Max) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Min) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Min) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Max))
         {
-            check_Container_Right(distance_Data[1], COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
         }
         else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Min) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Max) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Max) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Min))
         {
-            check_Container_Left(distance_Data[0], COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
         }
     }
 }
