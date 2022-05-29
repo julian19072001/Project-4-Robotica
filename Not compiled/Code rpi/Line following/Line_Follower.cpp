@@ -199,21 +199,21 @@ void reset_Lego()
 int check_Line_Status(int* data_Location, uint16_t min_Line_Change, uint16_t mid_Line_Change, uint16_t line_Samples)
 {
   static bool line;
-  static uint16_t old_middle[line_Samples];
+  static uint16_t old_middle[MAX_LINE_SAMPLES];
   if(old_middle[line_Samples-1] == 0) old_middle[line_Samples-1] = MAX_ADC_RETURN;
   if(data_Location[3] > (old_middle[line_Samples-1] + (mid_Line_Change)))           line = false;
   else if(data_Location[3] < (old_middle[line_Samples-1] - (mid_Line_Change)))      line = true;
   else                                                                              line = true;
 
   static bool left;
-  static uint16_t old_left[line_Samples];
+  static uint16_t old_left[MAX_LINE_SAMPLES];
   if((data_Location[0]) < (old_left[line_Samples-1] - min_Line_Change))             left = true;
   else if((data_Location[0] ) > (old_left[line_Samples-1] + min_Line_Change))       left = false;
   else                                                                              left = false;
 
 
   static bool right;
-  static uint16_t old_right[line_Samples];
+  static uint16_t old_right[MAX_LINE_SAMPLES];
   if((data_Location[6]) < (old_right[line_Samples-1] - min_Line_Change))            right = true;
   else if((data_Location[6]) > (old_right[line_Samples-1] + min_Line_Change))       right = false;
   else                                                                              right = false;
