@@ -717,7 +717,10 @@ int algorithm::turn_0(int expected_Container_Numbers, int number_Retries)
             {
                 printf("Niet alle containers gevonden, opnieuw scannen...\n");
                 number_Already_Driven++;
+                reached_Y_Min = false;
+                side_Scanned = false;
                 program_State_c = DRIVE_OVER_GRID;
+
             }
             else if(expected_Container_Numbers > get_Number_Of_Containers())
             {
