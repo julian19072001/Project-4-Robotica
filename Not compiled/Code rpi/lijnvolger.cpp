@@ -33,6 +33,8 @@
 
 #define MAX_CONTAINER_DISTANCE   30
 
+#define MAX_RETRIES              1
+
 static int distance_Data[NUMBER_VALUES_DISTANCE];
 
 algorithm follower;
@@ -43,7 +45,23 @@ void exit_signal_handler(int signo);
 int main(int nArgc, char* aArgv[]) 
 {
   signal(SIGINT, exit_signal_handler);
+
+  if(nArgc != 2)
+  {
+    printf("Correcte input is: ./lijn (Aantal verwachte containers) {Vul 0 in om een onbepaalt aantal containers te scannen}.\n");
+    exit(-2);
+  }
   
+  int number_Of_Expected_Containers;
+
+  sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
+
+  if(number_Of_Expected_Containers > 25) 
+  {
+    printf("Je wilt meer containers scannen dan het maximale aantal: %d\n", 25);
+    exit(-2);
+  }
+
   int commIsOpen1 = 0;
   int commIsOpen2 = 0;
 
@@ -64,7 +82,6 @@ int main(int nArgc, char* aArgv[])
   }
 
   int line_Data[NUMBER_VALUES_LINE];
-  
   int program_State = SEARCH_LINE;
 
   follower.setup_Motor(MOTOR_LEFT, MOTOR_RIGHT, MAX_SPEED, TURNING_SPEED);
@@ -78,7 +95,7 @@ int main(int nArgc, char* aArgv[])
     usleep(10000);
   }
 
-  for(int i = 0; i > LINE_SAMPLES * 2; i++)
+  for(int i = 0; i > 100; i++)
   {
     check_Line_Status(line_Data, MIN_SIDE_LINE_CHANGE, MIN_MID_LINE_CHANGE, LINE_SAMPLES);
   }
@@ -111,12 +128,12 @@ int main(int nArgc, char* aArgv[])
           break;
 
           case GO_Y0:
-          distance_Reading();
+          if(follower.reached_Y_Min == false) distance_Reading();
           program_State = follower.go_Y0();
           break;
 
           case TURN_0:
-          follower.turn_0();
+          program_State = follower.turn_0(number_Of_Expected_Containers, MAX_RETRIES);
           break;
         }
       }  
@@ -126,21 +143,24 @@ int main(int nArgc, char* aArgv[])
 
 void distance_Reading()
 {
-    int distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
-    if(distance_Result == VALIDDATA && !follower.just_Turned)
+    if(follower.y_Max && follower.driving_State == STRAIGHT)
     {
-        if((!follower.x_Direction_Modifier && (follower.x_Pos != follower.x_Min && follower.x_Pos != follower.x_Max)) || (!follower.y_Direction_Modifier && (follower.y_Pos != follower.y_Min && follower.y_Pos != follower.y_Max)))
+        int distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
+        if(distance_Result == VALIDDATA && !follower.just_Turned)
         {
-            check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
-            check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
-        }
-        else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Max) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Min) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Min) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Max))
-        {
-            check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
-        }
-        else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Min) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Max) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Max) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Min))
-        {
-            check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            if((!follower.x_Direction_Modifier && (follower.x_Pos != follower.x_Min && follower.x_Pos != follower.x_Max)) || (!follower.y_Direction_Modifier && (follower.y_Pos != follower.y_Min && follower.y_Pos != follower.y_Max)))
+            {
+                check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+                check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            }
+            else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Max) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Min) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Min) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Max))
+            {
+                check_Container_Right(distance_Data[1], MAX_CONTAINER_DISTANCE, COMPORT_RIGHT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            }
+            else if((follower.x_Direction_Modifier == 1 && follower.y_Pos == follower.y_Min) || (follower.x_Direction_Modifier == -1 && follower.y_Pos == follower.y_Max) || (follower.y_Direction_Modifier == 1 && follower.x_Pos == follower.x_Max) || (follower.y_Direction_Modifier == -1 && follower.x_Pos == follower.x_Min))
+            {
+                check_Container_Left(distance_Data[0], MAX_CONTAINER_DISTANCE, COMPORT_LEFT, follower.x_Direction_Modifier, follower.x_Pos, follower.y_Direction_Modifier, follower.y_Pos);
+            }
         }
     }
 }

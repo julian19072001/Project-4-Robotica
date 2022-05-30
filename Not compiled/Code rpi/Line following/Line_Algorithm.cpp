@@ -230,7 +230,7 @@ int algorithm::drive_Over_Grid()
                   x_Direction_Modifier = 1;
                   y_Direction_Modifier = 0;
                 }
-                if(side_Scanned ==  true)
+                if(side_Scanned == true)
                 {
                   reset_Lego();
                   program_State_c = GO_HOME;
@@ -263,6 +263,7 @@ int algorithm::drive_Over_Grid()
                     {
                         reset_Lego();
                         program_State_c = GO_HOME;
+                        x_Min = x_Pos;
                         printf("Going home\n");
                     }
                     else
@@ -296,6 +297,7 @@ int algorithm::drive_Over_Grid()
                 }
                 if(side_Scanned == true)
                 {
+                    reset_Lego();
                     program_State_c = GO_HOME;
                     printf("Going home\n");
                 } 
@@ -385,6 +387,11 @@ int algorithm::go_Home()
         else if(x_Direction_Modifier == 1)
         {
             if(x_Pos < 0) program_State_c = GO_X0;
+            else if(x_Pos == 0)
+            {
+                y_Direction_Modifier = 1;
+                driving_State = TURNING_LEFT;
+            }
             else
             {
                 x_Direction_Modifier = -1;
@@ -395,6 +402,11 @@ int algorithm::go_Home()
         else if(x_Direction_Modifier == -1)
         {
             if(x_Pos > 0) program_State_c = GO_X0;
+            else if(x_Pos == 0)
+            {
+                y_Direction_Modifier = 1;
+                driving_State = TURNING_RIGHT;
+            }
             else
             {
                 x_Direction_Modifier = 1;
@@ -405,6 +417,11 @@ int algorithm::go_Home()
         else if(y_Direction_Modifier == 1)
         {
             if(y_Pos < 0) program_State_c = GO_Y0;
+            else if(y_Pos == 0)
+            {
+                x_Direction_Modifier = 1;
+                driving_State = TURNING_RIGHT;
+            }
             else
             {
                 y_Direction_Modifier = -1;
@@ -415,6 +432,11 @@ int algorithm::go_Home()
         else if(y_Direction_Modifier == -1)
         {
             if(y_Pos > 0) program_State_c = GO_Y0;
+            else if(y_Pos == 0)
+            {
+                x_Direction_Modifier = 1;
+                driving_State = TURNING_LEFT;
+            }
             else
             {
                 y_Direction_Modifier = 1;
@@ -587,11 +609,14 @@ int algorithm::go_Y0()
         {
             if(y_Pos == y_Min && reached_Y_Min == false)
             {
-                y_Direction_Modifier = 1;
+                if(y_Direction_Modifier != 1)
+                {
+                    y_Direction_Modifier = 1;
+                    if(x_Pos == x_Min) driving_State = TURNING_180_RIGHT;
+                    else driving_State = TURNING_180;
+                }
                 y_Pos = y_Min;
                 reached_Y_Min = true;
-                if(x_Pos == x_Min) driving_State = TURNING_180_RIGHT;
-                else driving_State = TURNING_180;
                 break;
             }
             road = get_Road_Information(data_Location_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, wait_Samples_c, line_Samples_c);
@@ -609,15 +634,21 @@ int algorithm::go_Y0()
                 break;
 
                 case OPTION_LEFT:
-                printf("Splitsing links\n");
-                y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                if(!just_Turned)
+                {
+                    printf("Splitsing links\n");
+                    y_Pos += (1 * y_Direction_Modifier);
+                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                }
                 break;
 
                 case OPTION_RIGHT:
-                printf("Splitsing rechts\n");
-                y_Pos += (1 * y_Direction_Modifier);
-                follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                if(!just_Turned)
+                {
+                    printf("Splitsing rechts\n");
+                    y_Pos += (1 * y_Direction_Modifier);
+                    follow_Line(data_Location_c, goal_c, error_Gain_c, rate_Of_Change_c, motor_Left_c, motor_Right_c, driving_Speed_c, min_Side_Line_Change_c, min_Mid_Line_Change_c);
+                }
                 break;
 
                 case SPLIT:
@@ -666,7 +697,7 @@ int algorithm::go_Y0()
     return program_State_c;
 }
 
-void algorithm::turn_0()
+int algorithm::turn_0(int expected_Container_Numbers, int number_Retries)
 {
     if(just_Turned > 0) just_Turned++;
     if(just_Turned > wait_Samples_c*4) just_Turned = 0;
@@ -676,8 +707,24 @@ void algorithm::turn_0()
         case STRAIGHT:
         if(y_Direction_Modifier == 1 && !just_Turned)
         {
-            printf("Einde van programma\n");
-            end_Program();
+            static int number_Already_Driven = 0;
+            if(expected_Container_Numbers == get_Number_Of_Containers() || number_Already_Driven == number_Retries)
+            {
+                printf("Einde van programma\n");
+                end_Program();
+            }
+            else if(expected_Container_Numbers < get_Number_Of_Containers())
+            {
+                printf("Niet alle containers gevonden, opnieuw scannen...\n");
+                number_Already_Driven++;
+                program_State_c = DRIVE_OVER_GRID;
+            }
+            else if(expected_Container_Numbers > get_Number_Of_Containers())
+            {
+                printf("Teveel containers gevonden!\n");      
+                printf("Einde van programma\n");
+                end_Program();
+            }
         }
         if(y_Direction_Modifier == -1 && !just_Turned)
         {
@@ -711,6 +758,7 @@ void algorithm::turn_0()
         turning_180();
         break;
     }
+    return program_State_c;
 }
 
 void algorithm::stop()

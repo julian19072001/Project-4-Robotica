@@ -10,6 +10,14 @@ static uint8_t number_Scanned_Containers = 0;
 void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort);
 int check_If_There(int16_t x_Pos, int16_t y_Pos);
 
+// This function swaps values pointed by xp and yp
+void swap(int16_t *pos1, int16_t *pos2)
+{
+    int16_t temp = *pos1;
+    *pos1 = *pos2;
+    *pos2 = temp;
+}
+
 void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPort, int8_t x_Direction_Modifier, int16_t x_Pos, int8_t y_Direction_Modifier, int16_t y_Pos)
 {
     static int left_Detected = 0;
@@ -26,6 +34,7 @@ void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPo
     }*/
     if(left_Detected < MIN_DETECTED) return;
     left_Detected = 0;
+    printf("Container links gevonden\n");
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos - 1;
@@ -68,6 +77,7 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
     }*/
     if(right_Detected < MIN_DETECTED) return;
     right_Detected = 0;
+    printf("Container rechts gevonden\n");
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
@@ -118,16 +128,29 @@ void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t
 
 
 //function to perform sorting
-void sort_Containers();
+void sort_Containers()
 {
-    int min_idx;
- 
+    //int min_idx;
+    for (int i = 0; i < number_Scanned_Containers; i++) {     
+        for (int j = i+1; j < number_Scanned_Containers; j++) {     
+            if(containers[i].position > containers[j].position) {    
+                swap(&containers[i].x_Pos, &containers[j].x_Pos);
+                swap(&containers[i].y_Pos, &containers[j].y_Pos);
+                swap(&containers[i].color, &containers[j].color);
+                swap(&containers[i].position, &containers[j].position);    
+           }     
+        }     
+    } 
     // One by one move boundary of unsorted subarray
-    for (int i = 0; i < number_Scanned_Containers - 1; i++) 
+    /*for (int i = 0; i < number_Scanned_Containers - 1; i++) 
     {
         //find the minimum element in unsorted array
         min_idx = i;
-        for (int j = i + 1; j < number_Scanned_Containers; j++) if (containers[j].position < containers[min_idx].position) min_idx = j;
+        int j;
+        for (j = i + 1; j < number_Scanned_Containers; j++) 
+        if (containers[j].position < containers[min_idx].position) 
+        {
+        min_idx = j;
  
         //swap the found minimum element
         //with the first element
@@ -135,7 +158,8 @@ void sort_Containers();
         swap(&containers[min_idx].y_Pos, &containers[j].y_Pos);
         swap(&containers[min_idx].color, &containers[j].color);
         swap(&containers[min_idx].position, &containers[j].position);
-    }
+        }
+    }*/
 }
 
 //save the found container
@@ -168,4 +192,9 @@ int check_If_There(int16_t x_Pos, int16_t y_Pos)
         if(x_Pos == containers[i].x_Pos && y_Pos == containers[i].y_Pos) return IS_THERE;
     }
     return IS_NOT_THERE;
+}
+
+int get_Number_Of_Containers()
+{
+    return number_Scanned_Containers;
 }

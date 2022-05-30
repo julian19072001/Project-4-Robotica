@@ -22,7 +22,7 @@
         int go_Home();
         int go_X0();
         int go_Y0();
-        void turn_0();
+        int turn_0(int expected_Container_Numbers, int number_Retries);
         void stop();
 
         void setup_Motor(uint8_t motor_Left, uint8_t motor_Right, uint16_t driving_Speed, uint16_t turning_Speed);
@@ -42,6 +42,9 @@
         int x_Min;
 
         int just_Turned;
+        int driving_State;
+
+        bool reached_Y_Min;
 
         private:
         void turning_Left();
@@ -50,12 +53,10 @@
         void turning_180_Right();
         void end_Program();
 
-        int driving_State;
         int last_Junction;
         int road;
         int what_Doing;
 
-        bool reached_Y_Min;
         bool side_Scanned;
 
         int program_State_c;
