@@ -32,6 +32,7 @@
 #define WAIT_SAMPLES             115
 
 #define MAX_CONTAINER_DISTANCE   30
+#define MAX_NUMBER_OF_CONTAINERS 25
 
 #define MAX_RETRIES              1
 
@@ -56,9 +57,14 @@ int main(int nArgc, char* aArgv[])
 
   sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
 
-  if(number_Of_Expected_Containers > 25) 
+  if(number_Of_Expected_Containers > MAX_NUMBER_OF_CONTAINERS) 
   {
-    printf("Je wilt meer containers scannen dan het maximale aantal: %d\n", 25);
+    printf("Je wilt meer containers scannen dan het maximale aantal: %d\n", MAX_NUMBER_OF_CONTAINERS);
+    exit(-2);
+  }
+  else if(number_Of_Expected_Containers < 0)
+  {
+    printf("Je kan geen negatief aantal containers scannen!\n");
     exit(-2);
   }
 
@@ -89,11 +95,13 @@ int main(int nArgc, char* aArgv[])
   follower.setup_Samples(LINE_SAMPLES, WAIT_SAMPLES);
   follower.setup_Contrast(MIN_SIDE_LINE_CHANGE, MIN_MID_LINE_CHANGE);
 
-  for(int i = 0; i > 100; i++)
+  /*for(int i = 0; i > 100; i++)
   {
     GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
     usleep(10000);
-  }
+  }*/
+
+  while(GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE) != VALIDDATA);
 
   for(int i = 0; i > 100; i++)
   {

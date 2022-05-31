@@ -2,6 +2,24 @@
 
 algorithm::algorithm()
 {
+    reset_Variabels();
+    just_Turned = 1;
+
+    goal_c = 0;
+    rate_Of_Change_c = 2;
+    motor_Left_c = PORT6_MA;
+    motor_Right_c = PORT5_MB;
+    driving_Speed_c = -100;
+    turning_Speed_c = -50;
+    line_Samples_c = 20;
+    wait_Samples_c = 100;
+    min_Side_Line_Change_c = 300;
+    min_Mid_Line_Change_c = 1000;
+    error_Gain_c = 0.018;
+}
+
+void algorithm::reset_Variabels()
+{
     x_Pos = 0;
     x_Min = 0;
     x_Max = 0;
@@ -17,20 +35,6 @@ algorithm::algorithm()
 
     program_State_c = SEARCH_LINE;
     driving_State = STRAIGHT;
-
-    just_Turned = 1;
-
-    goal_c = 0;
-    rate_Of_Change_c = 2;
-    motor_Left_c = PORT6_MA;
-    motor_Right_c = PORT5_MB;
-    driving_Speed_c = -100;
-    turning_Speed_c = -50;
-    line_Samples_c = 20;
-    wait_Samples_c = 100;
-    min_Side_Line_Change_c = 300;
-    min_Mid_Line_Change_c = 1000;
-    error_Gain_c = 0.018;
 }
 
 int algorithm::search_Line()
@@ -379,7 +383,7 @@ int algorithm::go_Home()
 {
     if(just_Turned > 0) just_Turned++;
     if(just_Turned > wait_Samples_c*4) just_Turned = 0;
-
+    
     switch(driving_State)
     {
         case STRAIGHT:
@@ -391,6 +395,7 @@ int algorithm::go_Home()
             {
                 y_Direction_Modifier = 1;
                 driving_State = TURNING_LEFT;
+                program_State_c = GO_Y0;
             }
             else
             {
@@ -406,6 +411,7 @@ int algorithm::go_Home()
             {
                 y_Direction_Modifier = 1;
                 driving_State = TURNING_RIGHT;
+                program_State_c = GO_Y0;
             }
             else
             {
@@ -421,6 +427,7 @@ int algorithm::go_Home()
             {
                 x_Direction_Modifier = 1;
                 driving_State = TURNING_RIGHT;
+                program_State_c = GO_X0;
             }
             else
             {
@@ -436,6 +443,7 @@ int algorithm::go_Home()
             {
                 x_Direction_Modifier = 1;
                 driving_State = TURNING_LEFT;
+                program_State_c = GO_X0;
             }
             else
             {
@@ -708,24 +716,24 @@ int algorithm::turn_0(int expected_Container_Numbers, int number_Retries)
         if(y_Direction_Modifier == 1 && !just_Turned)
         {
             static int number_Already_Driven = 0;
-            if(expected_Container_Numbers == get_Number_Of_Containers() || number_Already_Driven == number_Retries)
+            if(expected_Container_Numbers == get_Number_Of_Containers() || number_Already_Driven == number_Retries || expected_Container_Numbers == 0)
             {
                 printf("Einde van programma\n");
+                printf("\n\n\n\n\n\n\n\n\n\n");
                 end_Program();
-            }
-            else if(expected_Container_Numbers < get_Number_Of_Containers())
-            {
-                printf("Niet alle containers gevonden, opnieuw scannen...\n");
-                number_Already_Driven++;
-                reached_Y_Min = false;
-                side_Scanned = false;
-                program_State_c = DRIVE_OVER_GRID;
-
             }
             else if(expected_Container_Numbers > get_Number_Of_Containers())
             {
-                printf("Teveel containers gevonden!\n");      
+                printf("Niet alle containers gevonden, opnieuw scannen...\n");
+                printf("\n\n\n\n\n\n\n\n\n\n"); 
+                number_Already_Driven++;
+                reset_Variabels();
+            }
+            else if(expected_Container_Numbers < get_Number_Of_Containers())
+            {     
                 printf("Einde van programma\n");
+                printf("\n\n\n\n\n\n\n\n\n\n");
+                printf("Er zijn %d containers teveel gevonden!\n", get_Number_Of_Containers() - expected_Container_Numbers); 
                 end_Program();
             }
         }

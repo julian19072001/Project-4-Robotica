@@ -34,7 +34,6 @@ void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPo
     }*/
     if(left_Detected < MIN_DETECTED) return;
     left_Detected = 0;
-    printf("Container links gevonden\n");
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos - 1;
@@ -77,7 +76,6 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
     }*/
     if(right_Detected < MIN_DETECTED) return;
     right_Detected = 0;
-    printf("Container rechts gevonden\n");
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
@@ -107,7 +105,7 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
 //sort the containers by position number and print them in the terminal
 void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t y_Max)
 {
-    printf("\n\n\n\n\n\n\nGevonden containers:\n");
+    printf("\nGevonden containers:\n");
     int x_Length = x_Max - x_Min;
     int y_Length = y_Max - y_Min;
     for(int i = 0; i < number_Scanned_Containers; i++)
@@ -168,6 +166,7 @@ void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort)
     if(check_If_There(x_Pos, y_Pos) == IS_THERE && number_Scanned_Containers) return;
     else
     {
+        printf("Container gevonden\n");
         containers[number_Scanned_Containers].x_Pos = x_Pos;
         containers[number_Scanned_Containers].y_Pos = y_Pos;
         

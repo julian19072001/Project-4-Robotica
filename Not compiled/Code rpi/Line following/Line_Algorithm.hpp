@@ -47,6 +47,7 @@
         bool reached_Y_Min;
 
         private:
+    	void reset_Variabels();
         void turning_Left();
         void turning_Right();
         void turning_180();
