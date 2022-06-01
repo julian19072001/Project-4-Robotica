@@ -117,12 +117,12 @@ ISR(ADCA_CH0_vect)
 
   if(n_d75 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d75 -= ADCA.CH0.RES;
+    sum_d75 -= (ADCA.CH0.RES);
     ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d75 += ADCA.CH0.RES;
+    sum_d75 += (ADCA.CH0.RES);
     ADCA.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN1_gc;
   }
 
@@ -150,12 +150,12 @@ ISR(ADCA_CH1_vect)
 
   if(n_d72 & 0x01) 
   {                  		//second (even) measurement
-    sum_d72 -= ADCA.CH1.RES;
+    sum_d72 -= (ADCA.CH1.RES);
     ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN4_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d72 += ADCA.CH1.RES;
+    sum_d72 += (ADCA.CH1.RES);
     ADCA.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN4_gc;
   }
 
@@ -182,12 +182,12 @@ ISR(ADCA_CH2_vect)
 
   if(n_d69 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d69 -= ADCA.CH2.RES;
+    sum_d69 -= (ADCA.CH2.RES);
     ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN6_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d69 += ADCA.CH2.RES;
+    sum_d69 += (ADCA.CH2.RES);
     ADCA.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN6_gc;
   }
 
@@ -206,20 +206,23 @@ ISR(ADCB_CH0_vect)
   static uint8_t n_d66 = 0;
   static int16_t sum_d66 = 0;	
 
+<<<<<<< HEAD:Not compiled/Lijnvolger/xMega_Lijnvolger.c
   if(reset_d66 == 1){
     n_d66 = 0;
     sum_d66 = 0;
     reset_d66 = 0;
   }
 
+=======
+>>>>>>> 4a943c9124fc8d2c3635e6b0425980cf676163b2:xMega_Lijnvolger.c
   if(n_d66 & 0x01) 
   {                  		//second (even) measurement
-    sum_d66 -= ADCB.CH0.RES;
+    sum_d66 -= (ADCB.CH0.RES);
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN0_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d66 += ADCB.CH0.RES;
+    sum_d66 += (ADCB.CH0.RES);
     ADCB.CH0.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN0_gc;
   }
 
@@ -246,12 +249,12 @@ ISR(ADCB_CH1_vect)
 
   if(n_d63 & 0x01) 
   {                  		    //second (even) measurement
-    sum_d63 -= ADCB.CH1.RES;
+    sum_d63 -= (ADCB.CH1.RES);
     ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN2_gc | ADC_CH_MUXNEG_PIN3_gc;
   } 
   else 
   {                         //first (odd) measurement
-    sum_d63 += ADCB.CH1.RES;
+    sum_d63 += (ADCB.CH1.RES);
     ADCB.CH1.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN2_gc;
   }
 
@@ -278,12 +281,12 @@ ISR(ADCB_CH2_vect)
 
   if(n_d60 & 0x01) 
   {                  		//second (even) measurement
-    sum_d60 -= ADCB.CH2.RES;
+    sum_d60 -= (ADCB.CH2.RES);
     ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN5_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d60 += ADCB.CH2.RES;
+    sum_d60 += (ADCB.CH2.RES);
     ADCB.CH2.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN5_gc;
   }
 
@@ -302,6 +305,7 @@ ISR(ADCB_CH3_vect)
   static uint8_t n_d57 = 0;
   static int16_t sum_d57 = 0;
 
+<<<<<<< HEAD:Not compiled/Lijnvolger/xMega_Lijnvolger.c
   if(reset_d57 == 1){
     n_d57 = 0;
     sum_d57 = 0;
@@ -309,13 +313,16 @@ ISR(ADCB_CH3_vect)
   }
 /*
   if(n_d57 & 0x01) 
+=======
+  /*if(n_d57 & 0x01) 
+>>>>>>> 4a943c9124fc8d2c3635e6b0425980cf676163b2:xMega_Lijnvolger.c
   {                  		    //second (even) measurement
-    sum_d57 -= ADCB.CH3.RES;
+    sum_d57 -= (ADCB.CH3.RES + zero_d57);
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN7_gc | ADC_CH_MUXNEG_PIN3_gc;
   }
   else 
   {                         //first (odd) measurement
-    sum_d57 += ADCB.CH3.RES;
+    sum_d57 += (ADCB.CH3.RES - zero_d57);
     ADCB.CH3.MUXCTRL = ADC_CH_MUXPOS_PIN3_gc | ADC_CH_MUXNEG_PIN7_gc;
   }*/
   sum_d57 += ADCB.CH3.RES;
