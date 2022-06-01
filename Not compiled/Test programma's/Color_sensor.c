@@ -6,22 +6,28 @@
 #include <string.h>
 #include "serialF0.h"
 #include "clock.h"
-//#include "Kleur_arrays.h"
 #include "spi.h"
+#include "RGB_sensor.hpp"
 
 #define SHFT_LATCH_bm   PIN4_bm 
 #define SAMPLES 8
-
 #define COLOR_SAMPLES   4
-
 #define COLOR_AVERAGE   6
 
 // Defines for led control
-#define RED     0x11
-#define GREEN   0x22
-#define BLUE    0x44
-#define WHITE   0x77
-#define IR      0x88
+#define LED_RED     0x11
+#define LED_GREEN   0x22
+#define LED_BLUE    0x44
+#define LED_WHITE   0x77
+#define LED_IR      0x88
+
+#define INCONCLUSIVE     0
+#define WHITE            1
+#define YELLOW           2
+#define PURPLE           3
+#define GREEN            4
+#define BLUE             5
+#define RED              6
 
 static volatile int32_t res_d75, res_d72, res_d69, res_d66, res_d63, res_d60, res_d57;
 volatile uint16_t reset_d75, reset_d72, reset_d69, reset_d66, reset_d63, reset_d60, reset_d57;
@@ -29,6 +35,22 @@ volatile int32_t tot_d75, tot_d72, tot_d69, tot_d66, tot_d63, tot_d60, tot_d57;
 
 volatile uint8_t sample_count;
 volatile uint8_t rgb_ready_flag;
+
+typedef struct RGB_Struct {
+  uint8_t c;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+} RGB_Struct;
+
+typedef struct HSV_Struct {
+  uint8_t h;
+  uint8_t s;
+  uint8_t v;
+} HSV_Struct;
+
+RGB_Struct RGB;
+HSV_Struct HSV;
 
 void init_Line_Follower(void);
 void init_Timer(void);
@@ -41,26 +63,28 @@ void leds_back(uint8_t color);
 void leds_latch_data(void);
 static uint8_t Map_val(uint16_t x, uint16_t in_min, uint16_t in_max, uint8_t out_min, uint8_t out_max);
 void Get_RGB_value(uint16_t *rgb);
-//void color_Line_Follower(void);
+void RGB_to_HSV(struct RGB_Struct, struct HSV_Struct);
 
 int main(void) 
 {
-  uint16_t rgb[4];
   uint8_t rgb_poll[7];
   uint8_t largest;
   uint8_t largest_pos;
   char command = 'S';
 
 	init_clock();
-  init_Timer();	
+  //init_Timer();	
   init_stream(F_CPU);
 
-  PORTE_DIRSET = PIN4_bm;		// LAT
-	PORTE_DIRSET = PIN3_bm;		// BLANK
+  RGB_sensor ;
 
-  spi_init();
-  init_Line_Follower();
-  leds_reset();
+
+  //PORTE_DIRSET = PIN4_bm;		// LAT
+	//PORTE_DIRSET = PIN3_bm;		// BLANK
+
+  //spi_init();
+  //init_Line_Follower();
+  //leds_reset();
   
   sei();
 
@@ -72,24 +96,24 @@ int main(void)
     while (command == 'S') {
       for (uint8_t i = 0; i < COLOR_AVERAGE; i++) {
         Get_RGB_value(rgb);
-        if (((rgb[1] > (rgb[2] - 10)) && (rgb[1] < (rgb[2] + 60))) && ((rgb[1] > (rgb[3] - 10)) && (rgb[1] < (rgb[3] + 60)))) {
-          rgb_poll[1]++;
-        } else if (((rgb[1] > (rgb[2] - 20)) && (rgb[1] < (rgb[2] + 60))) && ((rgb[3] < (rgb[1] - 100)) && (rgb[3] < (rgb[2] - 50))) && (rgb[1] > rgb[2]) && (rgb[1] > rgb[3])) {
-          rgb_poll[2]++;
-        } else if ((rgb[1] > rgb[3]) && (rgb[3] > rgb[2])) {
-          rgb_poll[3]++;
-        } else if ((rgb[2] > rgb[1]) && (rgb[2] > rgb[3])) {
-          rgb_poll[4]++;
-        } else if ((rgb[3] > rgb[1]) && (rgb[3] > rgb[2])) {
-          rgb_poll[5]++;
-        } else if ((rgb[1] > rgb[2]) && (rgb[1] > rgb[3])) {
-          rgb_poll[6]++;
+        if (((RGB.r  > (RGB.g - 10)) && (RGB.r  < (RGB.g + 60))) && ((RGB.r  > (RGB.b - 10)) && (RGB.r  < (RGB.b + 60)))) {
+          rgb_poll[WHITE]++;
+        } else if (((RGB.r  > (RGB.g - 20)) && (RGB.r  < (RGB.g + 60))) && ((RGB.b < (RGB.r  - 100)) && (RGB.b < (RGB.g - 50))) && (RGB.r  > RGB.g) && (RGB.r  > RGB.b)) {
+          rgb_poll[YELLOW]++;
+        } else if ((RGB.r  > RGB.b) && (RGB.b > RGB.g)) {
+          rgb_poll[PURPLE]++;
+        } else if ((RGB.g > RGB.r ) && (RGB.g > RGB.b)) {
+          rgb_poll[GREEN]++;
+        } else if ((RGB.b > RGB.r ) && (RGB.b > RGB.g)) {
+          rgb_poll[BLUE]++;
+        } else if ((RGB.r  > RGB.g) && (RGB.r  > RGB.b)) {
+          rgb_poll[RED]++;
         } else {
-          rgb_poll[0]++;
+          rgb_poll[INCONCLUSIVE]++;
         }
       }
 
-      largest = rgb_poll[0];
+      largest = rgb_poll[INCONCLUSIVE];
       for(uint8_t i = 1; i < 7; i++) {
            if(largest < rgb_poll[i]) {
           largest = rgb_poll[i];
@@ -98,47 +122,45 @@ int main(void)
       }
 
       switch (largest_pos) {
-      case 0:
-        printf("INCONCLUSIVE");
+      case INCONCLUSIVE:
+        printf(" 0\n");
         break;
       
-      case 1:
-        printf("WHITE");
+      case WHITE:
+        printf(" 1\n");
         break;
       
-      case 2:
-        printf("YELLOW");
+      case YELLOW:
+        printf(" 2\n");
         break;
       
-      case 3:
-        printf("PURPLE");
+      case PURPLE:
+        printf(" 3\n");
         break;
       
-      case 4:
-        printf("GREEN");
+      case GREEN:
+        printf(" 4\n");
         break;
       
-      case 5:
-        printf("BLUE");
+      case BLUE:
+        printf(" 5\n");
         break;
       
-      case 6:
-        printf("RED");
+      case RED:
+        printf(" 6\n");
         break;
       
       default:
         break;
       }
 
-      // printf("\nRed %5d | Green %5d | Blue %5d | Cal %5d\n\n", rgb[1], rgb[2], rgb[3], rgb[0]);
+      //printf("\nLED_Red %5d | Green %5d | Blue %5d | Cal %5d\n\n", RGB.r , RGB.g, RGB.b, RGB.c);
 
       leds_reset();
       memset(rgb_poll, 0, sizeof(rgb_poll));
       command = '\n';
     }
-
-    //'printf("Red %5d | Green %5d | Blue %5d | Cal %5d\n", rgb[1], rgb[2], rgb[3], rgb[0]);
-  }
+3  }
 }
 
 //Interrupt service routine for d75
@@ -456,14 +478,6 @@ void init_Timer(void)
   TCE0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	// Interrupt overflow off
 }
 
-void init_Timer2(void)
-{
-  TCD1.PER      = 3124;     					            // Tper =  8 * (3124 +1) / 32M = 0.025 s
-  TCD1.CTRLA    = TC_CLKSEL_DIV8_gc;          // Prescaling 8
-  TCD1.CTRLB    = TC_WGMODE_NORMAL_gc;        	// Normal mode
-  TCD1.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	// Interrupt overflow off
-}
-
 void stop_Timer(void)
 {
 	TCD1.CTRLA    = TC_CLKSEL_OFF_gc;			// timer/counter off
@@ -489,10 +503,10 @@ void Get_RGB_value(uint16_t *rgb)
   stop_Timer();
   tot_d63 /= sample_count;
   ctot = tot_d63;
-  rgb[0] = ctot;
+  RGB.c = ctot;
 
-  // Measure value with Red light
-  leds_center(RED);
+  // Measure value with LED_Red light
+  leds_center(LED_RED);
   sample_count = 0;
   init_Timer();
   while (sample_count < COLOR_SAMPLES);
@@ -501,7 +515,7 @@ void Get_RGB_value(uint16_t *rgb)
   rtot = (tot_d63 - ctot);
 
   // Measure value with Green light
-  leds_center(GREEN);
+  leds_center(LED_GREEN);
   sample_count = 0;
   init_Timer();
   while (sample_count < COLOR_SAMPLES);
@@ -510,7 +524,7 @@ void Get_RGB_value(uint16_t *rgb)
   gtot = (tot_d63 - ctot);
 
   // Measure value with Blue light
-  leds_center(BLUE);
+  leds_center(LED_BLUE);
   sample_count = 0;
   init_Timer();
   while (sample_count < COLOR_SAMPLES);
@@ -520,12 +534,12 @@ void Get_RGB_value(uint16_t *rgb)
 
   // Proportional value of RGB
   total = rtot + gtot + btot; 
-  rprp = (((float)rtot / total) * 100);
-  rgb[1] = Map_val(rprp, 0, 100, 0, 255);
-  gprp = (((float)gtot / total) * 100);
-  rgb[2] = Map_val(gprp, 0, 100, 0, 255);
-  bprp = (((float)btot / total) * 100);
-  rgb[3] = Map_val(bprp, 0, 100, 0, 255);
+  rprp  = (((float)rtot / total) * 100);
+  RGB.r = Map_val(rprp, 0, 100, 0, 255);
+  gprp  = (((float)gtot / total) * 100);
+  RGB.g = Map_val(gprp, 0, 100, 0, 255);
+  bprp  = (((float)btot / total) * 100);
+  RGB.b = Map_val(bprp, 0, 100, 0, 255);
 }
 
 inline void leds_latch_data(void)
