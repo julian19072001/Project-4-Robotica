@@ -21,8 +21,8 @@ extern "C"
 #define REMAP_FALSE    0
 #define REMAP_TRUE     1
 
-#define SAMPLES        10
-#define COLOR_SAMPLES  50
+#define SAMPLES        100
+#define COLOR_SAMPLES  5
 #define COLOR_AVERAGE  1
 
 // Defines for led control
