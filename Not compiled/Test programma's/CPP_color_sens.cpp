@@ -88,8 +88,8 @@ int main(void)
         printf("H: %5d | S: %5d | V: %5d\n", HSV.h , HSV.s, HSV.v);
         printf("LED_Red %5d | Green %5d | Blue %5d | Cal %5d\n", RGB.r , RGB.g, RGB.b, RGB.c);
 
-        HSV.s = 100; HSV.v = 100;
-        RGB = RGB_left.HSV_to_RGB(&HSV);
+        //HSV.s = 100; HSV.v = 100;
+        //RGB = RGB_left.HSV_to_RGB(&HSV);
         Show_sensor_colour(&RGB);
 
         command = '\n';

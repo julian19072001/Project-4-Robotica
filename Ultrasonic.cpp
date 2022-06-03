@@ -70,16 +70,16 @@ Ultrasonic::Ultrasonic(uint16_t max_Distance, uint64_t max_Timeout, PORT_t *port
 
 void Init_Ultrasonic_timer(void) 
 {
-    TCE1.PER      = 31;     				    // Tper =  1 * (31 + 1) / 32M = 0.000001 s
-    TCE1.CTRLA    = TC_CLKSEL_DIV1_gc;          // Prescaling 1
-    TCE1.CTRLB    = TC_WGMODE_NORMAL_gc;        // Normal mode
-    TCE1.INTCTRLA = TC_OVFINTLVL_LO_gc;        	// Interrupt overflow off
+    TCC1.PER      = 31;     				    // Tper =  1 * (31 + 1) / 32M = 0.000001 s
+    TCC1.CTRLA    = TC_CLKSEL_DIV1_gc;          // Prescaling 1
+    TCC1.CTRLB    = TC_WGMODE_NORMAL_gc;        // Normal modeS
+    TCC1.INTCTRLA = TC_OVFINTLVL_LO_gc;        	// Interrupt overflow off
 }
 
 void Stop_Ultrasonic_timer(void) 
 {
-	TCE1.CTRLA    = TC_CLKSEL_OFF_gc;			// timer/counter off
-    TCE1.INTCTRLA = TC_OVFINTLVL_OFF_gc;		// disables overflow interrupt
+	TCC1.CTRLA    = TC_CLKSEL_OFF_gc;			// timer/counter off
+    TCC1.INTCTRLA = TC_OVFINTLVL_OFF_gc;		// disables overflow interrupt
 }
 
 uint16_t Ultrasonic::Measure_distance_cm(float temperature) 
@@ -115,68 +115,68 @@ uint16_t Ultrasonic::Measure_distance_cm(float temperature)
     switch(echo_Pin_c)
     {
         case PIN0_bm:
-        while((bit_is_clear(port_c->IN, PIN0_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
-
-        while((bit_is_set(port_c->IN, PIN0_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_clear(port_c->IN, PIN0_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
+    
+            while((bit_is_set(port_c->IN, PIN0_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN1_bm:
-        while((bit_is_clear(port_c->IN, PIN1_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN1_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN1_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN1_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN2_bm:
-        while((bit_is_clear(port_c->IN, PIN2_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN2_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN2_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN2_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN3_bm:
-        while((bit_is_clear(port_c->IN, PIN3_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN3_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN3_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN3_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN4_bm:
-        while((bit_is_clear(port_c->IN, PIN4_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN4_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN4_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN4_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN5_bm:
-        while((bit_is_clear(port_c->IN, PIN5_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN5_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN5_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN5_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN6_bm:
-        while((bit_is_clear(port_c->IN, PIN6_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN6_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN6_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN6_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
 
         case PIN7_bm:
-        while((bit_is_clear(port_c->IN, PIN7_bp)) && (time_us < max_distance_duration_us));
-        time_us = 0;
+            while((bit_is_clear(port_c->IN, PIN7_bp)) && (time_us < max_distance_duration_us));
+            time_us = 0;
 
-        while((bit_is_set(port_c->IN, PIN7_bp)) && (time_us < max_distance_duration_us));
-        Stop_Ultrasonic_timer();
-        break;
+            while((bit_is_set(port_c->IN, PIN7_bp)) && (time_us < max_distance_duration_us));
+            Stop_Ultrasonic_timer();
+            break;
     }
 
     if(time_us < max_distance_duration_us) 
@@ -200,7 +200,7 @@ uint16_t Ultrasonic::Measure_distance_cm(float temperature)
     }
 }
 
-ISR (TCE1_OVF_vect) 
+ISR (TCC1_OVF_vect) 
 {
     time_us++;
 }

@@ -141,7 +141,7 @@ RGB_Struct RGB_sensor::Get_RGB_value(void)
     // Proportional value of RGB
     for (uint8_t colour = R; colour <= B; colour++) {
       if (prp[colour] > 500) {
-        prp[colour] = 500;
+        prp[colour] = 400;
       }
       prp[colour]  = (((float)tot[colour] / 500) * 255);
     }
@@ -267,7 +267,7 @@ void RGB_sensor::init_Timer(uint8_t setting)
     break;
   }
   
-  TCE0.PER      = 299;     					            // Tper =  8 * (99 +1) / 32M = 35 us
+  TCE0.PER      = 49;     					            // Tper =  8 * (99 +1) / 32M = 35 us
                                                 // ADC conversion time at 12-bit ~3.5us
                                                 // ~3.5us * 3 = 10.5us
 

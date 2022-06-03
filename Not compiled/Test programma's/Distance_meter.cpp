@@ -18,12 +18,12 @@ int main(void)
     init_clock();
     init_stream(F_CPU);
     
-    Ultrasonic left(40, 0, &PORTD, PIN5_bm, PIN6_bm);
-    Ultrasonic right(40, 0, &PORTD, PIN2_bm, PIN3_bm);
+    Ultrasonic left(40, 0, &PORTE, PIN0_bm, PIN1_bm);
+    //Ultrasonic right(40, 0, &PORTD, PIN2_bm, PIN3_bm);
 
 	while (1) {
         distance_left = (int)left.Measure_distance_cm(22.307);
-        distance_right = (int)right.Measure_distance_cm(22.307);
+        //distance_right = (int)right.Measure_distance_cm(22.307);
         printf(" %ld %ld\n", (uint32_t)(distance_left), (uint32_t)(distance_right));
         _delay_ms(1);
     }
