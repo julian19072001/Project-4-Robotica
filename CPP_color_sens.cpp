@@ -13,15 +13,6 @@ extern "C"
     #include "clock.h"
 }
 
-#define ORANGE ((HSV.h > 7) && (HSV.h <= 25))
-#define YELLOW ((HSV.h > 7) && (HSV.h <= 25))
-#define GREEN ((HSV.h > 7) && (HSV.h <= 25))
-#define CYAN ((HSV.h > 7) && (HSV.h <= 25))
-#define BLUE ((HSV.h > 7) && (HSV.h <= 25))
-#define PURPLE ((HSV.h > 7) && (HSV.h <= 25))
-#define PINK ((HSV.h > 7) && (HSV.h <= 25))
-
-
 void Show_sensor_colour (RGB_Struct *RGB) {
   PORTF.DIRSET = PIN1_bm | PIN0_bm;
   PORTC.DIRSET = PIN0_bm;
@@ -71,15 +62,20 @@ int main(void)
             printf(" WHITE\n");
         } 
         else {
-          if (HSV.h <= 7) printf(" RED\n");
-          if (ORANGE)   printf(" ORANGE\n");
-          if (YELLOW)   printf(" YELLOW\n");
-          if (GREEN)  printf(" GREEN\n");
-          if ((HSV.h > 150)   &&  (HSV.h <= 220))  printf(" CYAN\n");
-          if ((HSV.h > 220)   &&  (HSV.h <= 275))  printf(" BLUE\n");
-          if ((HSV.h > 275)   &&  (HSV.h <= 340))  printf(" PURPLE\n");
-          if ((HSV.h > 340)   &&  (HSV.h <= 360))  printf(" PINK\n");
-          if (HSV.h > 360) printf(" RED\n");
+          if(HSV.v < 10) printf(" ZWART\n");
+          else if(HSV.v > 80) printf(" WIT\n");
+          else
+          {
+            if (HSV.h <= 7) printf(" RED\n");
+            if ((HSV.h > 7)    &&  (HSV.h <= 25))   printf(" ORANGE\n");
+            if ((HSV.h > 25)    &&  (HSV.h <= 70))   printf(" YELLOW\n");
+            if ((HSV.h > 70)    &&  (HSV.h <= 150))  printf(" GREEN\n");
+            if ((HSV.h > 150)   &&  (HSV.h <= 220))  printf(" CYAN\n");
+            if ((HSV.h > 220)   &&  (HSV.h <= 275))  printf(" BLUE\n");
+            if ((HSV.h > 275)   &&  (HSV.h <= 340))  printf(" PURPLE\n");
+            if ((HSV.h > 340)   &&  (HSV.h <= 360))  printf(" PINK\n");
+            if (HSV.h > 360) printf(" RED\n");
+          }
         }
 
         printf("H: %5d | S: %5d | V: %5d\n", HSV.h , HSV.s, HSV.v);
