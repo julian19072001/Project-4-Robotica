@@ -32,6 +32,7 @@
 
 char     *getline(char* buf,  uint16_t len);
 void      init_stream(uint32_t f_cpu);
+uint8_t   CanRead_F0(void);
 uint16_t  uartF0_getc(void);
 void      uartF0_putc(uint8_t data);
 void      uartF0_puts(char *s);
