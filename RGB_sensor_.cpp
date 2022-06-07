@@ -3,7 +3,6 @@
 #include "RGB_sensor_.hpp"
 
 // Diode variables
-volatile int32_t res_diode_r, res_diode_g, res_diode_b;
 volatile uint16_t reset_diode_r, reset_diode_g, reset_diode_b;
 volatile int64_t tot_diode[3];
 volatile uint16_t sample_count = 0;
@@ -122,21 +121,21 @@ RGB_sensor::RGB_sensor(PORT_t *spi_port, SPI_t *spi_ctrl_port, PORT_t *adc_port,
 
   leds_reset();
 
-  adc_port_c->DIRCLR     = PIN0_bm|PIN1_bm|PIN2_bm|PIN3_bm;									    //configure PA as input for ADCA
+  adc_port_c->DIRCLR     = PIN4_bm|PIN1_bm|PIN2_bm|PIN3_bm;									    //configure PA as input for ADCA
   
-  set_adcch_input(&adc_ctrl_port_c->CH0, ADC_CH_MUXNEG_PIN3_gc, ADC_CH_MUXPOS_PIN0_gc);
+  set_adcch_input(&adc_ctrl_port_c->CH0, ADC_CH_MUXPOS_PIN3_gc, ADC_CH_MUXNEG_PIN4_gc);
   adc_ctrl_port_c->CH0.INTCTRL = ADC_CH_INTLVL_LO_gc;												//Interrupt on low level interrupts
 
-	set_adcch_input(&adc_ctrl_port_c->CH1, ADC_CH_MUXNEG_PIN2_gc, ADC_CH_MUXPOS_PIN0_gc);			//PA4 to channel 1
+	set_adcch_input(&adc_ctrl_port_c->CH1, ADC_CH_MUXPOS_PIN2_gc, ADC_CH_MUXNEG_PIN4_gc);			//PA4 to channel 1
 	adc_ctrl_port_c->CH1.INTCTRL = ADC_CH_INTLVL_LO_gc;												//Interrupt on low level interrupts
 
-	set_adcch_input(&adc_ctrl_port_c->CH2, ADC_CH_MUXNEG_PIN1_gc, ADC_CH_MUXPOS_PIN0_gc);			//PA6 to channel 2
+	set_adcch_input(&adc_ctrl_port_c->CH2, ADC_CH_MUXPOS_PIN1_gc, ADC_CH_MUXNEG_PIN4_gc);			//PA6 to channel 2
 	adc_ctrl_port_c->CH2.INTCTRL = ADC_CH_INTLVL_LO_gc;												//Interrupt on low level interrupts
 
-	adc_ctrl_port_c->CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 							
+	adc_ctrl_port_c->CTRLB       = ADC_RESOLUTION_12BIT_gc | ADC_CONMODE_bm; 						
 	
-  adc_ctrl_port_c->REFCTRL     = ADC_REFSEL_INT1V_gc;											//internal vcc/2 refernce
-	adc_ctrl_port_c->PRESCALER   = ADC_PRESCALER_DIV16_gc;											//prescaling
+  adc_ctrl_port_c->REFCTRL     = ADC_REFSEL_INT1V_gc;										//internal vcc/2 refernce
+	adc_ctrl_port_c->PRESCALER   = ADC_PRESCALER_DIV512_gc;								//prescaling
 	adc_ctrl_port_c->CTRLA       = ADC_ENABLE_bm;													//enable ADC
 	
   adc_ctrl_port_c->EVCTRL	     = ADC_SWEEP_012_gc | ADC_EVSEL_0123_gc | ADC_EVACT_CH012_gc;		//Sweep CH0,1,2; select event CH0,1,2,3; event triggers ADC CH0,1,2
@@ -165,48 +164,72 @@ RGB_sensor::RGB_sensor(PORT_t *spi_port, SPI_t *spi_ctrl_port, PORT_t *adc_port,
 
 RGB_Struct RGB_sensor::Get_RGB_value(void)
 {
-    uint16_t tot[3], cor[3], prp[3];
+    int16_t tot[3], cor[3], prp[3];
     uint16_t colour_setting[3] = { LED_RED, LED_GREEN, LED_BLUE };
     uint8_t colour_set = 0;
     
     RGB_Struct RGB;
 
-    // Measure calibration values 
-    leds_reset();
-    for (uint8_t colour = R; colour <= B; colour++) {
-      init_Timer(colour);
-      while (!sample_count);
-      stop_Timer();
-
-      if (tot_diode[colour] < 0) {
-        tot_diode[colour] *= -1;
-      }
-
-      cor[colour] = tot_diode[colour];
-    }
-
+    //printf("Diode values:");
     // Measure value with LED_Red light
     for (uint8_t colour = R; colour <= B; colour++) {
-      leds_center(colour_setting[colour]);
-
+      leds_reset();
       init_Timer(colour);
-      while (!sample_count);
+      while (sample_count < SAMPLE_AVR);
       stop_Timer();
-    
-      if (tot_diode[colour] < 0) {
-        tot_diode[colour] *= -1;
+
+      if (cor[colour] < 0) {
+        cor[colour] *= -1;
+      }; cor[colour] = tot_diode[colour] / SAMPLE_AVR;
+      
+      leds_center(colour_setting[colour]);
+      init_Timer(colour);
+      while (sample_count < SAMPLE_AVR);
+      stop_Timer();
+
+      tot[colour] =  (tot_diode[colour] / SAMPLE_AVR) - cor[colour];
+      if (tot[colour] < 0) {
+        tot[colour] *= -1;
       }
 
-      if (tot_diode[colour] < cor[colour]) tot[colour] = 0;
-      else tot[colour] = (tot_diode[colour] - cor[colour]);
+      //if (tot_diode[colour] < cor[colour]) tot[colour] = 0;
+      //else tot[colour] = (tot_diode[colour] - cor[colour]);
+
+      //tot[colour] = (tot_diode[colour] / SAMPLE_AVR);
+      
+      //printf("%5d ", tot_diode[colour] / SAMPLE_AVR);
     }
+    //printf("\n");
 
-    tot[R] *= 0.90;
-    tot[G] *= 0.75;
-    tot[B] *= 1;
+    //printf("Cor values:");
+    // Measure calibration values 
+    /*leds_reset();
+    for (uint8_t colour = R; colour <= B; colour++) {
+      init_Timer(colour);
+      while (sample_count < SAMPLE_AVR);
+      stop_Timer();
 
-    //clear_screen();
+      if (cor[colour] < 0) {
+        cor[colour] *= -1;
+      }
 
+      cor[colour] = tot_diode[colour] / SAMPLE_AVR;
+
+      //printf("%5d ", cor[colour]);
+    }
+    //printf("\n");
+
+    for (uint8_t colour = R; colour <= B; colour++) {
+      tot[colour] -= cor[colour];
+      if (tot[colour] < 0) {
+        tot[colour] *= -1;
+      }
+    };*/
+
+    tot[R] *= 0.6;
+    tot[G] *= 0.7;
+    tot[B] *= 1.0;
+    
     //printf("Corected values:");
     //for (uint8_t colour = R; colour <= B; colour++) {
     //  printf("%5d ", tot[colour]);
@@ -214,25 +237,21 @@ RGB_Struct RGB_sensor::Get_RGB_value(void)
 
     leds_reset();
 
-    if (tot[R] > 30) {
-        tot[R] = 30;
-    } prp[R]  = (((float)tot[R] / 30) * 255);
+    prp[R]  = (((float)tot[R] / max(tot[R], tot[G], tot[B])) * 255);
+    prp[G]  = (((float)tot[G] / max(tot[R], tot[G], tot[B])) * 255);
+    prp[B]  = (((float)tot[B] / max(tot[R], tot[G], tot[B])) * 255);
 
-    if (tot[G] > 20) {
-        tot[G] = 20;
-    } prp[G]  = (((float)tot[G] / 20) * 255);
+    /*if (tot[R] > 180) {
+        tot[R] = 180;
+    } prp[R]  = (((float)tot[R] / 180) * 255);
 
-    if (tot[B] > 15) {
-        tot[B] = 15;
-    } prp[B]  = (((float)tot[B] / 15) * 255);
+    if (tot[G] > 180) {
+        tot[G] = 180;
+    } prp[G]  = (((float)tot[G] / 180) * 255);
 
-    // Proportional value of RGB
-    /*for (uint8_t colour = R; colour <= B; colour++) {
-      if (prp[colour] > 60) {
-        prp[colour] = 60;
-      }
-      prp[colour]  = (((float)tot[colour] / 60) * 255);
-    }*/
+    if (tot[B] > 180) {
+        tot[B] = 180;
+    } prp[B]  = (((float)tot[B] / 180) * 255);*/
     
     RGB.r = prp[R];
     RGB.g = prp[G];
@@ -249,7 +268,7 @@ RGB_Struct RGB_sensor::Get_RGB_value(void)
 void RGB_sensor::set_adcch_input(ADC_CH_t *ch, uint8_t pos_pin_gc, uint8_t neg_pin_gc)
 {
   ch->MUXCTRL = pos_pin_gc | neg_pin_gc;
-  ch->CTRL    = ADC_CH_INPUTMODE_DIFF_gc;
+  ch->CTRL    = ADC_CH_INPUTMODE_DIFFWGAIN_gc| ADC_CH_GAIN_2X_gc;	
 } /* set_adcch_input() */
 
 void RGB_sensor::init_Timer(uint8_t setting)
@@ -291,11 +310,11 @@ void RGB_sensor::init_Timer(uint8_t setting)
     break;
   }
   
-  TCF0.PER      = 99;     					            // Tper =  8 * (99 +1) / 32M = 35 us
+  TCF0.PER      = 1;     					            // Tper =  8 * (99 +1) / 32M = 35 us
                                                 // ADC conversion time at 12-bit ~3.5us
                                                 // ~3.5us * 3 = 10.5us
 
-  TCF0.CTRLA    = TC_CLKSEL_DIV8_gc;            // Prescaling 8
+  TCF0.CTRLA    = TC_CLKSEL_DIV8_gc;            // Prescaling 8A
   TCF0.CTRLB    = TC_WGMODE_NORMAL_gc;        	// Normal mode
   TCF0.INTCTRLA = TC_OVFINTLVL_OFF_gc;        	// Interrupt overflow off
 } /* init_Timer() */
@@ -395,12 +414,11 @@ ISR(ADCA_CH0_vect)
   if (reset_diode_r == 1) {
     n_diode_r = 0;
     sum_diode_r = 0;
-    reset_diode_r = 0;
     tot_diode[R] = 0;
+    reset_diode_r = 0;
   }
 
   sum_diode_r += ADCA.CH0.RES;
-  //ADCA.CH0.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
 
   /*if (n_diode_r & 0x01) {                  		    //second (even) measurement
     sum_diode_r -= ADCA.CH0.RES;
@@ -412,8 +430,7 @@ ISR(ADCA_CH0_vect)
 
   n_diode_r++;
   if (n_diode_r == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_r = sum_diode_r/SAMPLES;
-    tot_diode[R] += res_diode_r;
+    tot_diode[R] += sum_diode_r / SAMPLES;
     sum_diode_r = 0;
     n_diode_r = 0;
     sample_count++;
@@ -429,12 +446,11 @@ ISR(ADCA_CH1_vect)
   if (reset_diode_g == 1) {
     n_diode_g = 0;
     sum_diode_g = 0;
-    reset_diode_g = 0;
     tot_diode[G] = 0;
+    reset_diode_g = 0;
   }
 
   sum_diode_g += ADCA.CH1.RES;
-  //ADCA.CH1.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN2_gc;
 
   /*if (n_diode_g & 0x01) {                  		    //second (even) measurement
     sum_diode_g -= ADCA.CH1.RES;
@@ -444,11 +460,9 @@ ISR(ADCA_CH1_vect)
     ADCA.CH1.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN2_gc;
   }*/
 
-
   n_diode_g++;
   if (n_diode_g == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_g = sum_diode_g/SAMPLES;
-    tot_diode[G] += res_diode_g;
+    tot_diode[G] += sum_diode_g / SAMPLES;
     sum_diode_g = 0;
     n_diode_g = 0;
     sample_count++;
@@ -464,12 +478,11 @@ ISR(ADCA_CH2_vect)
   if (reset_diode_b == 1) {
     n_diode_b = 0;
     sum_diode_b = 0;
-    reset_diode_b = 0;
     tot_diode[B] = 0;
+    reset_diode_b = 0;
   }
 
   sum_diode_b += ADCA.CH2.RES;
-  //ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN1_gc;
 
   /*if (n_diode_b & 0x01) {                  		    //second (even) measurement
     sum_diode_b -= ADCA.CH2.RES;
@@ -479,11 +492,9 @@ ISR(ADCA_CH2_vect)
     ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
   }*/
 
-
   n_diode_b++;
   if (n_diode_b == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_b = sum_diode_b/SAMPLES;
-    tot_diode[B] += res_diode_b;
+    tot_diode[B] += sum_diode_b / SAMPLES;
     sum_diode_b = 0;
     n_diode_b = 0;
     sample_count++;
@@ -499,25 +510,23 @@ ISR(ADCB_CH0_vect)
   if (reset_diode_r == 1) {
     n_diode_r = 0;
     sum_diode_r = 0;
-    reset_diode_r = 0;
     tot_diode[R] = 0;
+    reset_diode_r = 0;
   }
 
   sum_diode_r += ADCB.CH0.RES;
-  //ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN1_gc;
 
-  /*if (n_diode_b & 0x01) {                  		    //second (even) measurement
-    sum_diode_b -= ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN3_gc | ADC_CH_MUXPOS_PIN0_gc;
+  /*if (n_diode_r & 0x01) {                  		    //second (even) measurement
+    sum_diode_r -= ADCB.CH0.RES;
+    ADCB.CH0.MUXCTRL = ADC_CH_MUXNEG_PIN1_gc | ADC_CH_MUXPOS_PIN0_gc;
   } else {                         //first (odd) measurement
-    sum_diode_b += ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
+    sum_diode_r += ADCB.CH0.RES;
+    ADCB.CH0.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN1_gc;
   }*/
 
   n_diode_r++;
   if (n_diode_r == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_r = sum_diode_r/SAMPLES;
-    tot_diode[R] += res_diode_r;
+    tot_diode[R] += sum_diode_r / SAMPLES;
     sum_diode_r = 0;
     n_diode_r = 0;
     sample_count++;
@@ -533,25 +542,23 @@ ISR(ADCB_CH1_vect)
   if (reset_diode_g == 1) {
     n_diode_g = 0;
     sum_diode_g = 0;
-    reset_diode_g = 0;
     tot_diode[G] = 0;
+    reset_diode_g = 0;
   }
 
   sum_diode_g += ADCB.CH1.RES;
-  //ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN1_gc;
 
-  /*if (n_diode_b & 0x01) {                  		    //second (even) measurement
-    sum_diode_b -= ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN3_gc | ADC_CH_MUXPOS_PIN0_gc;
+  /*if (n_diode_g & 0x01) {                  		    //second (even) measurement
+    sum_diode_g -= ADCB.CH1.RES;
+    ADCB.CH1.MUXCTRL = ADC_CH_MUXNEG_PIN2_gc | ADC_CH_MUXPOS_PIN0_gc;
   } else {                         //first (odd) measurement
-    sum_diode_b += ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
+    sum_diode_g += ADCB.CH1.RES;
+    ADCB.CH1.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN2_gc;
   }*/
 
   n_diode_g++;
   if (n_diode_g == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_g = sum_diode_g/SAMPLES;
-    tot_diode[G] += res_diode_g;
+    tot_diode[G] += sum_diode_g / SAMPLES;
     sum_diode_g = 0;
     n_diode_g = 0;
     sample_count++;
@@ -567,25 +574,23 @@ ISR(ADCB_CH2_vect)
   if (reset_diode_b == 1) {
     n_diode_b = 0;
     sum_diode_b = 0;
-    reset_diode_b = 0;
     tot_diode[B] = 0;
+    reset_diode_b = 0;
   }
 
   sum_diode_b += ADCB.CH2.RES;
-  //ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN1_gc;
 
   /*if (n_diode_b & 0x01) {                  		    //second (even) measurement
-    sum_diode_b -= ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN3_gc | ADC_CH_MUXPOS_PIN0_gc;
+    sum_diode_b -= ADCB.CH2.RES;
+    ADCB.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN3_gc | ADC_CH_MUXPOS_PIN0_gc;
   } else {                         //first (odd) measurement
-    sum_diode_b += ADCA.CH2.RES;
-    ADCA.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
+    sum_diode_b += ADCB.CH2.RES;
+    ADCB.CH2.MUXCTRL = ADC_CH_MUXNEG_PIN0_gc | ADC_CH_MUXPOS_PIN3_gc;
   }*/
 
   n_diode_b++;
   if (n_diode_b == SAMPLES) {							//if eight measurement have been made safe it as a result
-    res_diode_b = sum_diode_b/SAMPLES;
-    tot_diode[B] += res_diode_b;
+    tot_diode[B] += sum_diode_b / SAMPLES;
     sum_diode_b = 0;
     n_diode_b = 0;
     sample_count++;

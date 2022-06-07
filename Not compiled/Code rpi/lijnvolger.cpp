@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <Communication.h>
 #include <Line_Algorithm.hpp>
+#include "UI.hpp"
+
 
 #define COMPORT_DISTANCE         24
 #define COMPORT_LINE             25

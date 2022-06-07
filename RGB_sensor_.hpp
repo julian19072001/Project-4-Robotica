@@ -21,7 +21,8 @@
   #define REMAP_FALSE    0
   #define REMAP_TRUE     1
 
-  #define SAMPLES        500
+  #define SAMPLES        100
+  #define SAMPLE_AVR     12
 
   // Defines for led control
   #define LED_RED     0x9249
