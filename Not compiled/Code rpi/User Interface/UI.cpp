@@ -1,10 +1,3 @@
-//buffering.cpp
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Opdracht 8.b Buffering
-//
-// g++ -Wall -o buffering buffering.cpp
-// ./buffering
-
 #include "UI.hpp"
 
 void Startup_UI(void)
@@ -27,7 +20,6 @@ void Startup_UI(void)
     printf("\x1B[3;21H                                                                                                ");
     printf("\x1B[0m");
     
-    //printf("\x1B[1m");
     printf("\x1B[48;2;55;55;55m");
     printf("\x1B[38;2;255;255;255m");
     printf("\x1B[4;0H                                                                             ");
@@ -35,7 +27,6 @@ void Startup_UI(void)
     printf("\x1B[6;0H                                                                             ");
     printf("\x1B[0m");
 
-    //printf("\x1B[1m");
     printf("\x1B[48;2;100;100;100m");
     printf("\x1B[7;0H                                                                            ");
     printf("\x1B[15;0H                                                                            ");
@@ -53,7 +44,6 @@ void Startup_UI(void)
     };
     printf("\x1B[0m");
     
-    //printf("\x1B[1m");
     printf("\x1B[48;2;45;45;45m");
     printf("\x1B[38;2;255;255;255m");
     printf("\x1B[4;78H                                       ");
@@ -65,8 +55,8 @@ void Startup_UI(void)
     for(uint8_t y_pos = 7; y_pos < MOV_FEED_LENGTH + 8; y_pos++) {
         printf("\x1B[%d;78H                              ", y_pos);
     };
-    printf("\x1B[0m");  // Reset formatting settings
-    fflush(stdout);     // Flush buffer
+    printf("\x1B[0m"); 
+    fflush(stdout);     
 }
 
 void Update_movement_feed(char *new_line)
@@ -80,18 +70,15 @@ void Update_movement_feed(char *new_line)
         }; startup_switch = 1;
     }
 
-    // Move up movement feed
     for(uint8_t arry_ptr = 0; arry_ptr < MOV_FEED_LENGTH + 1; arry_ptr++) {
         strcpy(movement_feed[arry_ptr - 1], movement_feed[arry_ptr]);
     }; strcpy(movement_feed[MOV_FEED_LENGTH], new_line);
 
-    printf("\x1B[48;2;15;15;15m");      // Background colour
+    printf("\x1B[48;2;15;15;15m");   
 
-    // Write movement feed
     for(uint8_t y_pos = 7; y_pos < MOV_FEED_LENGTH + 8; y_pos++) {
         printf("\x1B[%d;78H %s ", y_pos, movement_feed[y_pos - 7]);
 
-        // Fill empty space incase feed entry doesn't
         if(strlen(movement_feed[y_pos - 7]) < MOV_FEED_WIDTH) {
             for(uint8_t i = 0; i < MOV_FEED_WIDTH - strlen(movement_feed[y_pos - 7]); i++) {
                 printf(" ");
@@ -99,8 +86,8 @@ void Update_movement_feed(char *new_line)
         }; 
         printf(" ");
     };
-    printf("\x1B[0m");  // Reset formatting settings
-    fflush(stdout);     // Flush buffer
+    printf("\x1B[0m");  
+    fflush(stdout);    
 }
 
 void Update_grid(uint8_t pos, uint8_t colour)

@@ -1,6 +1,3 @@
-//cd ~/hva_examples/legorpi_examples
-//g++ -Wall -o lijn lijnvolger.cpp ~/hva_libraries/legorpi/*.cpp -I/home/piuser/hva_libraries/legorpi ~/hva_libraries/legorpi/*.c
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,9 +19,9 @@
 #define MAX_SPEED                500
 #define TURNING_SPEED            105
 
-#define SETPOINT                 770    // The goal for readLine (center)
-#define KP                       0.018  // The P value in PID
-#define KD                       1      // The D value in PID
+#define SETPOINT                 770    
+#define KP                       0.018 
+#define KD                       1      
 
 #define MIN_SIDE_LINE_CHANGE     340
 #define MIN_MID_LINE_CHANGE      1025
@@ -94,12 +91,6 @@ int main(int nArgc, char* aArgv[])
   follower.setup_PID(line_Data, SETPOINT, KP, KD);
   follower.setup_Samples(LINE_SAMPLES, WAIT_SAMPLES);
   follower.setup_Contrast(MIN_SIDE_LINE_CHANGE, MIN_MID_LINE_CHANGE);
-
-  /*for(int i = 0; i > 100; i++)
-  {
-    GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE);
-    usleep(10000);
-  }*/
 
   while(GetNewXMegaData(COMPORT_LINE, line_Data, NUMBER_VALUES_LINE) != VALIDDATA);
 
@@ -175,7 +166,6 @@ void distance_Reading()
     }
 }
 
-//Signal handler that will be called when Ctrl+C is pressed to stop the program
 void exit_signal_handler(int signo) 
 {
   if (signo == SIGINT) 

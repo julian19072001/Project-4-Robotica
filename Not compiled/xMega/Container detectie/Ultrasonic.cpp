@@ -13,8 +13,8 @@ Ultrasonic::Ultrasonic() {
     trigger_Pin_c       = DEFAULT_TRIGGER_PIN;
 
     time_us = 0;
-    port_c->DIRCLR = echo_Pin_c;		    // ECHO
-	port_c->DIRSET = trigger_Pin_c;		    // TRIG
+    port_c->DIRCLR = echo_Pin_c;		   
+	port_c->DIRSET = trigger_Pin_c;		    
 
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
     sei(); 
@@ -29,8 +29,8 @@ Ultrasonic::Ultrasonic(uint16_t max_Distance, uint64_t max_Timeout)
     trigger_Pin_c       = DEFAULT_TRIGGER_PIN;
     
     time_us = 0;
-    port_c->DIRCLR = echo_Pin_c;		    // ECHO
-	port_c->DIRSET = trigger_Pin_c;		    // TRIG
+    port_c->DIRCLR = echo_Pin_c;		   
+	port_c->DIRSET = trigger_Pin_c;		    
 
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
     sei(); 
@@ -45,8 +45,8 @@ Ultrasonic::Ultrasonic(PORT_t *port, uint8_t trigger_Pin, uint8_t echo_Pin)
     trigger_Pin_c       = trigger_Pin;
     
     time_us = 0;
-    port_c->DIRCLR = PIN1_bm;		    // ECHO
-	port_c->DIRSET = PIN0_bm;		    // TRIG
+    port_c->DIRCLR = PIN1_bm;		   
+	port_c->DIRSET = PIN0_bm;		   
 
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
     sei(); 
@@ -61,8 +61,8 @@ Ultrasonic::Ultrasonic(uint16_t max_Distance, uint64_t max_Timeout, PORT_t *port
     trigger_Pin_c       = trigger_Pin;
     
     time_us = 0;
-    port_c->DIRCLR = echo_Pin_c;		    // ECHO
-	port_c->DIRSET = trigger_Pin_c;		    // TRIG
+    port_c->DIRCLR = echo_Pin_c;		   
+	port_c->DIRSET = trigger_Pin_c;		  
 
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
     sei(); 
@@ -70,16 +70,16 @@ Ultrasonic::Ultrasonic(uint16_t max_Distance, uint64_t max_Timeout, PORT_t *port
 
 void Init_Ultrasonic_timer(void) 
 {
-    TCE1.PER      = 31;     				    // Tper =  1 * (31 + 1) / 32M = 0.000001 s
-    TCE1.CTRLA    = TC_CLKSEL_DIV1_gc;          // Prescaling 1
-    TCE1.CTRLB    = TC_WGMODE_NORMAL_gc;        // Normal mode
-    TCE1.INTCTRLA = TC_OVFINTLVL_LO_gc;        	// Interrupt overflow off
+    TCE1.PER      = 31;     				  
+    TCE1.CTRLA    = TC_CLKSEL_DIV1_gc;         
+    TCE1.CTRLB    = TC_WGMODE_NORMAL_gc;        
+    TCE1.INTCTRLA = TC_OVFINTLVL_LO_gc;       
 }
 
 void Stop_Ultrasonic_timer(void) 
 {
-	TCE1.CTRLA    = TC_CLKSEL_OFF_gc;			// timer/counter off
-    TCE1.INTCTRLA = TC_OVFINTLVL_OFF_gc;		// disables overflow interrupt
+	TCE1.CTRLA    = TC_CLKSEL_OFF_gc;			
+    TCE1.INTCTRLA = TC_OVFINTLVL_OFF_gc;		
 }
 
 float Ultrasonic::Measure_distance_cm(float temperature) 
@@ -87,10 +87,8 @@ float Ultrasonic::Measure_distance_cm(float temperature)
     uint64_t max_distance_duration_us;
     uint64_t duration_us;
 
-    // Define speed of sound in cm per second
-    float speed_of_sound_cm_per_us = 0.03313 + 0.0000606 * temperature; // Cair ≈ (331.3 + 0.606 ⋅ ϑ) m/s
+    float speed_of_sound_cm_per_us = 0.03313 + 0.0000606 * temperature; 
 
-    // Compute max delay based on max distance with 25% margin in microseconds
     max_distance_duration_us = 2.5 * (float)max_distance_cm / speed_of_sound_cm_per_us;
     if(max_timeout_us > 0) 
     {
@@ -100,15 +98,13 @@ float Ultrasonic::Measure_distance_cm(float temperature)
         }
     }
 
-    port_c->OUTCLR = trigger_Pin_c;		// TRIG low
+    port_c->OUTCLR = trigger_Pin_c;		
     _delay_us(40);
 
-    // Hold trigger for 10 microseconds, which is signal for sensor to measure distance.
-    port_c->OUTSET = trigger_Pin_c;		// TRIG high
+    port_c->OUTSET = trigger_Pin_c;		
     _delay_us(2000);
-    port_c->OUTCLR = trigger_Pin_c;		// TRIG low
+    port_c->OUTCLR = trigger_Pin_c;		
 
-    // Measure the length of echo signal, which is equal to the time needed for sound to go there and back.
     time_us = 0;
     Init_Ultrasonic_timer();
 
