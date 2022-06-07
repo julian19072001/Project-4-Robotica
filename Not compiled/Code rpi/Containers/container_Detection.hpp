@@ -6,10 +6,11 @@
     #include <string.h>
     #include <sys/time.h>
     #include "Communication.h"
+    #include <UI.hpp>
 
     #define MAX_NUMBER_OF_CONTAINERS 25
 
-    #define MIN_DETECTED 5
+    #define MIN_DETECTED 14
     #define WAIT_FOR_COLOR 500000
 
     typedef struct Container

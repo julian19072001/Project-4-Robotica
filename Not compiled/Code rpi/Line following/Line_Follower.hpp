@@ -4,6 +4,7 @@
     #include <legorpi.hpp>
     #include <unistd.h>
     #include <stdbool.h>
+    #include <UI.hpp>
 
     #define LINE                0
     #define NO_LINE             1
