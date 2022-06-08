@@ -73,24 +73,15 @@ int main(void)
 
         HSV = RGB_to_HSV(&RGB);
 
-        //if (HSV.h <= 10) printf(" %d\n", RED);
-        //if ((HSV.h > 10)   &&  (HSV.h <= 30))   printf(" %d\n", ORANGE);
-        //if ((HSV.h > 30)   &&  (HSV.h <= 90))   printf(" %d\n", YELLOW);
-        //if ((HSV.h > 90)   &&  (HSV.h <= 150))  printf(" %d\n", GREEN);
-        //if ((HSV.h > 150)  &&  (HSV.h <= 195))  printf(" %d\n", CYAN);
-        //if ((HSV.h > 195)  &&  (HSV.h <= 240))  printf(" %d\n", BLUE);
-        //if ((HSV.h > 240)  &&  (HSV.h <= 300))  printf(" %d\n", PURPLE);
-        //if ((HSV.h > 300)  &&  (HSV.h <= 355))  printf(" %d\n", PINK);
-        //if (HSV.h > 355) printf(" %d\n", RED);
-
-        if (HSV.h <= 60) printf(" %d\n", RED);
-        if ((HSV.h > 60)   &&  (HSV.h <= 180))  printf(" %d\n", GREEN);
-        if ((HSV.h > 180)  &&  (HSV.h <= 300))  printf(" %d\n", BLUE);
-        if (HSV.h > 300) printf(" %d\n", RED);
-
-        //clear_screen();
-        //printf("H: %5d | S: %5d | V: %5d\n", HSV.h , HSV.s, HSV.v);
-        //printf("LED_Red %5d | Green %5d | Blue %5d | Cal %5d\n", RGB.r , RGB.g, RGB.b, RGB.c);
+        if (HSV.h <= 10) printf(" %d\n", RED);
+        if ((HSV.h > 10)    &&  (HSV.h <= 30))   printf(" %d\n", ORANGE);
+        if ((HSV.h > 30)   &&  (HSV.h <= 85))   printf(" %d\n", YELLOW);
+        if ((HSV.h > 85)   &&  (HSV.h <= 150))  printf(" %d\n", GREEN);
+        if ((HSV.h > 150)  &&  (HSV.h <= 220))  printf(" %d\n", CYAN);
+        if ((HSV.h > 220)  &&  (HSV.h <= 265))  printf(" %d\n", BLUE);
+        if ((HSV.h > 265)  &&  (HSV.h <= 320))  printf(" %d\n", PURPLE);
+        if ((HSV.h > 320)  &&  (HSV.h <= 355))  printf(" %d\n", PINK);
+        if (HSV.h > 355) printf(" %d\n", RED);
 
         HSV.s = 100; HSV.v = 20;
         RGB = HSV_to_RGB(&HSV);

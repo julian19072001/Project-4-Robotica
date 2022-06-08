@@ -172,12 +172,6 @@ HSV_Struct RGB_sensor::RGB_to_HSV(RGB_Struct *RGB)
   else if (cmax == g) HSV.h = fmod((60 * ((b - r) / diff) + 120), 360.0);
   else if (cmax == b) HSV.h = fmod((60 * ((r - g) / diff) + 240), 360.0);
 
-  /*if ((HSV.h < 180) && (HSV.h > 10)) {
-    HSV.h = HSV.h + ((180 - HSV.h) * 0.2);
-  } else if (HSV.h > 180){
-    HSV.h = HSV.h - ((HSV.h - 180) * 0.4);
-  }*/
-
   // if cmax equal zero
   if (cmax == 0) HSV.s = 0;
   else HSV.s = (diff / cmax) * 100;

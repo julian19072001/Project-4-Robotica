@@ -22,9 +22,8 @@
   #define REMAP_TRUE     1
 
   #define SAMPLES        100
-  #define SAMPLE_AVR     12
+  #define SAMPLE_AVR     5
 
-  // Defines for led control
   #define LED_RED     0x9249
   #define LED_GREEN   0x2492
   #define LED_BLUE    0x4924
@@ -85,7 +84,7 @@
         ADC_t  *adc_ctrl_port_c;  // ADC port used
 
         // Utility functions
-        void init_Timer(uint8_t setting);;                                                                                    // Initialize timer used to regulate the number of samples taken
+        void init_Timer(uint8_t setting);;                                                                        // Initialize timer used to regulate the number of samples taken
         void stop_Timer(void);                                                                                    // Stop timer used to regulate the number of samples taken
         static uint8_t Map_val(uint16_t x, uint16_t in_min, uint16_t in_max, uint8_t out_min, uint8_t out_max);   // Map a value to a new range
         void set_adcch_input(ADC_CH_t *ch, uint8_t pos_pin_gc, uint8_t neg_pin_gc);                               // Function for setting ADC input in differential mode
