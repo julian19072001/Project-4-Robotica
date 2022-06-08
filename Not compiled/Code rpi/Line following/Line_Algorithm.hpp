@@ -47,6 +47,7 @@
         uint16_t wait_Samples_c;
 
         bool reached_Y_Min;
+        bool reached_Y_Max;
 
         private:
     	void reset_Variabels();

@@ -177,15 +177,19 @@ void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t
 
         }
 
-        Update_grid(containers[i].position, containers[i].color);
+        Update_grid(containers[i].position, containers[i].color, x_Length, y_Length);
     }
 }
 
+
 void sort_Containers()
 {
-    for (int i = 0; i < number_Scanned_Containers; i++) {     
-        for (int j = i+1; j < number_Scanned_Containers; j++) {     
-            if(containers[i].position > containers[j].position) {    
+    for (int i = 0; i < number_Scanned_Containers; i++) 
+    {     
+        for (int j = i+1; j < number_Scanned_Containers; j++) 
+        {     
+            if(containers[i].position > containers[j].position) 
+            {    
                 swap(&containers[i].x_Pos, &containers[j].x_Pos);
                 swap(&containers[i].y_Pos, &containers[j].y_Pos);
                 swap(&containers[i].color, &containers[j].color);
@@ -221,10 +225,7 @@ void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort, char side)
 
 int check_If_There(int16_t x_Pos, int16_t y_Pos)
 {
-    for(int i = 0; i < number_Scanned_Containers; i++)
-    {
-        if(x_Pos == containers[i].x_Pos && y_Pos == containers[i].y_Pos) return IS_THERE;
-    }
+    for(int i = 0; i < number_Scanned_Containers; i++) if(x_Pos == containers[i].x_Pos && y_Pos == containers[i].y_Pos) return IS_THERE;
     return IS_NOT_THERE;
 }
 

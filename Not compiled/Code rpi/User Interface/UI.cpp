@@ -1,9 +1,3 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <windows.h>
 #include "UI.hpp"
 
 void Startup_UI(void)
@@ -21,9 +15,9 @@ void Startup_UI(void)
     printf("\x1B[1m");
     printf("\x1B[48;2;100;0;0m");
     printf("\x1B[38;2;255;255;255m");
-    printf("\x1B[1;21H                                                                                                                                                                          ");
-    printf("\x1B[2;21H                                                                                                                                                                          ");
-    printf("\x1B[3;21H                                                                                                                                                                          ");
+    printf("\x1B[1;21H                                                                                                                                                                         ");
+    printf("\x1B[2;21H                                                                                                                                                                         ");
+    printf("\x1B[3;21H                                                                                                                                                                         ");
     printf("\x1B[0m");
     
     printf("\x1B[48;2;55;55;55m");
@@ -59,13 +53,13 @@ void Startup_UI(void)
     printf("\x1B[0m");
     printf("\x1B[48;2;45;45;45m");
     printf("\x1B[38;2;255;255;255m");
-    printf("\x1B[4;146H                                             ");
-    printf("\x1B[5;146H                Movement feed                ");
-    printf("\x1B[6;146H                                             ");
+    printf("\x1B[4;146H                                            ");
+    printf("\x1B[5;146H                Movement feed               ");
+    printf("\x1B[6;146H                                            ");
     printf("\x1B[0m");
     
     printf("\x1B[48;2;15;15;15m");
-    for(uint8_t y_pos = 7; y_pos < MOV_FEED_LENGTH + 8; y_pos++) printf("\x1B[%d;146H                              ", y_pos);
+    for(uint8_t y_pos = 7; y_pos < MOV_FEED_LENGTH + 8; y_pos++) printf("\x1B[%d;146H                             ", y_pos);
     printf("\x1B[0m"); 
     fflush(stdout);     
 }
@@ -103,6 +97,11 @@ void Update_grid(uint8_t pos, uint8_t colour, uint8_t x_max, uint8_t y_max)
     uint8_t x_pos;
     uint8_t y_pos;
 
+    pos--;
+
+    printf("\x1B[0m");
+    fflush(stdout);
+
     if(grid_sized == 0) {
         printf("\x1B[48;2;75;75;75m");
         for(x_pos = x_max; x_pos < 11; x_pos++) 
@@ -130,12 +129,10 @@ void Update_grid(uint8_t pos, uint8_t colour, uint8_t x_max, uint8_t y_max)
                 printf("\x1B[%d;%dH           ", ((y_pos * 7) + 13), ((x_pos * 13) + 3));
             }
         }
-        printf("\x1B[0m");
-        fflush(stdout);
         grid_sized = 1;
     }
 
-    switch (colour) 
+    switch (colour % 10) 
     {
     case 0:
         printf("\x1B[48;2;130;130;130m");
@@ -174,6 +171,7 @@ void Update_grid(uint8_t pos, uint8_t colour, uint8_t x_max, uint8_t y_max)
         break;
     
     default:
+        printf("\x1B[48;2;100;0;130m");
         break;
     }
 
@@ -186,6 +184,4 @@ void Update_grid(uint8_t pos, uint8_t colour, uint8_t x_max, uint8_t y_max)
     printf("\x1B[%d;%dH           ", ((y_pos * 7) + 11), ((x_pos * 13) + 3));
     printf("\x1B[%d;%dH           ", ((y_pos * 7) + 12), ((x_pos * 13) + 3));
     printf("\x1B[%d;%dH           ", ((y_pos * 7) + 13), ((x_pos * 13) + 3));
-    printf("\x1B[0m");
-    fflush(stdout);
 }

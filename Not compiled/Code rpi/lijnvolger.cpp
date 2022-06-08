@@ -19,8 +19,8 @@
 #define MAX_SPEED                500
 #define TURNING_SPEED            105
 
-#define SETPOINT                 770    
-#define KP                       0.018 
+#define SETPOINT                 770   
+#define KP                       0.018  
 #define KD                       1      
 
 #define MIN_SIDE_LINE_CHANGE     340
@@ -129,7 +129,7 @@ int main(int nArgc, char* aArgv[])
           break;
 
           case GO_Y0:
-          if(follower.reached_Y_Min == false) distance_Reading();
+          if(follower.reached_Y_Min == false || follower.reached_Y_Max == false) distance_Reading();
           program_State = follower.go_Y0();
           break;
 
@@ -147,7 +147,7 @@ void distance_Reading()
     if(follower.y_Max && follower.driving_State == STRAIGHT)
     {
         int distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
-        if(distance_Result == VALIDDATA && (!follower.just_Turned || follower.just_Turned > (follower.wait_Samples_c*2)))
+        if(distance_Result == VALIDDATA && (!follower.just_Turned || follower.just_Turned > (follower.wait_Samples_c*3.5)))
         {
             if((!follower.x_Direction_Modifier && (follower.x_Pos != follower.x_Min && follower.x_Pos != follower.x_Max)) || (!follower.y_Direction_Modifier && (follower.y_Pos != follower.y_Min && follower.y_Pos != follower.y_Max)))
             {
