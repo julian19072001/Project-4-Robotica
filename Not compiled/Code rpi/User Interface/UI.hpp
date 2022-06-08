@@ -1,8 +1,8 @@
 #ifndef UI_HPP
 #define UI_HPP
 
-    #define MOV_FEED_LENGTH 40
-    #define MOV_FEED_WIDTH  36
+    #define MOV_FEED_LENGTH 42
+    #define MOV_FEED_WIDTH  42
 
     #include <stdint.h>
     #include <stdbool.h>
