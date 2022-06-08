@@ -2,7 +2,6 @@
 
 #define COM_RGB_LEFT    'L'
 #define COM_RGB_RIGHT   'R'
-#define COM_ULTRA       'U'
 
 #define COM_STANDBY     '\n'
 
@@ -12,7 +11,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "RGB_sensor_.hpp"
+#include "RGB_sensor.hpp"
 #include "Ultrasonic.hpp"
 
 extern "C"

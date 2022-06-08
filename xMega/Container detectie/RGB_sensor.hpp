@@ -1,6 +1,10 @@
 #ifndef RGB_SENSOR__HPP
 #define RGB_SENSOR__HPP
+
+  #ifndef F_CPU 
   #define F_CPU 32000000UL
+  #endif
+
   #include <stdio.h>
   #include <avr/io.h>
   #include <util/delay.h>
