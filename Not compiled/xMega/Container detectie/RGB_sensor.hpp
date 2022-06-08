@@ -65,8 +65,6 @@
 
   HSV_Struct RGB_to_HSV(RGB_Struct *RGB);
   RGB_Struct HSV_to_RGB (HSV_Struct *HSV);
-  float max(float a, float b, float c);
-  float min(float a, float b, float c);
 
 
   class RGB_sensor 
