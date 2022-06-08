@@ -1,9 +1,3 @@
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <windows.h>
 #include "UI.hpp"
 
 void Startup_UI(void)
