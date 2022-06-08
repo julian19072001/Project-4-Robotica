@@ -26,12 +26,13 @@ void algorithm::reset_Variabels()
     x_Direction_Modifier = 0;
 
     y_Pos = 0;
-    y_Min = 0;
+    y_Min = -100;
     y_Max = 0;
     y_Direction_Modifier = 0;
 
     side_Scanned = false;
     reached_Y_Min = false;
+    reached_Y_Max = false;
 
     program_State_c = SEARCH_LINE;
     driving_State = STRAIGHT;
@@ -40,7 +41,7 @@ void algorithm::reset_Variabels()
 int algorithm::search_Line()
 {
     if(just_Turned > 0) just_Turned++;
-    if(just_Turned > wait_Samples_c*4) just_Turned = 0;
+    if(just_Turned > wait_Samples_c*6) just_Turned = 0;
 
     road = get_Road_Information(data_Location_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, wait_Samples_c, line_Samples_c);
     switch(road)
@@ -584,7 +585,7 @@ int algorithm::go_Y0()
     switch(driving_State)
     {
         case STRAIGHT:
-        if(!y_Pos && reached_Y_Min == true)
+        if(!y_Pos && reached_Y_Min == true && reached_Y_Max == true)
         {
             if(!x_Pos) program_State_c = TURN_0;
             else if(x_Pos > 0 && y_Direction_Modifier == 1)
@@ -627,6 +628,18 @@ int algorithm::go_Y0()
                 reached_Y_Min = true;
                 break;
             }
+            if(y_Pos == y_Max && reached_Y_Max == false)
+            {
+                if(y_Direction_Modifier != -1)
+                {
+                    y_Direction_Modifier = -1;
+                    if(x_Pos == x_Max) driving_State = TURNING_180_RIGHT;
+                    else driving_State = TURNING_180;
+                }
+                y_Pos = y_Max;
+                reached_Y_Max = true;
+                break;
+            }
             road = get_Road_Information(data_Location_c, min_Side_Line_Change_c, min_Mid_Line_Change_c, wait_Samples_c, line_Samples_c);
             switch(road)
             {
@@ -663,24 +676,54 @@ int algorithm::go_Y0()
                 Update_movement_feed("Splitsing");
                 y_Pos += (1 * y_Direction_Modifier);
                 driving_State = TURNING_180;
-                y_Direction_Modifier = 1;
-                reached_Y_Min = true;
+                if(y_Direction_Modifier == -1)
+                {
+                    y_Direction_Modifier = 1;
+                    reached_Y_Min = true;
+                    y_Min = y_Pos;
+                }
+                else
+                {
+                    y_Direction_Modifier = -1;
+                    reached_Y_Max = true;
+                    y_Max = y_Pos;
+                }
                 break;
 
                 case LEFT_TURN:
                 Update_movement_feed("Bocht links");
                 y_Pos += (1 * y_Direction_Modifier);
                 driving_State = TURNING_180;
-                y_Direction_Modifier = 1;
-                reached_Y_Min = true;
+                if(y_Direction_Modifier == -1)
+                {
+                    y_Direction_Modifier = 1;
+                    reached_Y_Min = true;
+                    y_Min = y_Pos;
+                }
+                else
+                {
+                    y_Direction_Modifier = -1;
+                    reached_Y_Max = true;
+                    y_Max = y_Pos;
+                }
                 break;
 
                 case RIGHT_TURN:
                 Update_movement_feed("Bocht rechts");
                 y_Pos += (1 * y_Direction_Modifier);
                 driving_State = TURNING_180_RIGHT;
-                y_Direction_Modifier = 1;
-                reached_Y_Min = true;
+                if(y_Direction_Modifier == -1)
+                {
+                    y_Direction_Modifier = 1;
+                    reached_Y_Min = true;
+                    y_Min = y_Pos;
+                }
+                else
+                {
+                    y_Direction_Modifier = -1;
+                    reached_Y_Max = true;
+                    y_Max = y_Pos;
+                }
                 break;
             }
         }
@@ -859,6 +902,7 @@ void algorithm::turning_180_Right()
 void algorithm::end_Program()
 {
     print_Found_Containers(x_Min, y_Min, x_Max, y_Max);
+    printf("\x1B[50;0H");
     reset_Lego();
     exit(-2);
 }

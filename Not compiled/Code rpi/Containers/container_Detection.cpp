@@ -10,7 +10,6 @@ static uint8_t number_Scanned_Containers = 0;
 void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort, char side);
 int check_If_There(int16_t x_Pos, int16_t y_Pos);
 
-// This function swaps values pointed by xp and yp
 void swap(int16_t *pos1, int16_t *pos2)
 {
     int16_t temp = *pos1;
@@ -28,13 +27,8 @@ void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPo
         return;
     }
     left_Detected++;
-    /*if(left_Detected == 5)
-    {
-        RS232_SendByte(comPort, 'S');
-    }*/
     if(left_Detected < (MIN_DETECTED)) return;
     left_Detected = 0;
-    //RS232_SendByte(comPort, 'L');
     usleep(1500);
     if(y_Direction_Modifier == 1)
     {
@@ -72,13 +66,8 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
         return;
     }
     right_Detected++;
-    /*if(right_Detected == 5)
-    {
-        RS232_SendByte(comPort, 'S');
-    }*/
     if(right_Detected < MIN_DETECTED) return;
     right_Detected = 0;
-    //RS232_SendByte(comPort, 'R');
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
@@ -105,7 +94,6 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
     }
 }
 
-//sort the containers by position number and print them in the terminal
 void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t y_Max)
 {
     char feed_entry[MOV_FEED_WIDTH];
@@ -189,18 +177,19 @@ void print_Found_Containers(int16_t x_Min, int16_t y_Min, int16_t x_Max, int16_t
 
         }
 
-        Update_grid(containers[i].position, containers[i].color);
+        Update_grid(containers[i].position, containers[i].color, x_Length, y_Length);
     }
 }
 
 
-//function to perform sorting
 void sort_Containers()
 {
-    //int min_idx;
-    for (int i = 0; i < number_Scanned_Containers; i++) {     
-        for (int j = i+1; j < number_Scanned_Containers; j++) {     
-            if(containers[i].position > containers[j].position) {    
+    for (int i = 0; i < number_Scanned_Containers; i++) 
+    {     
+        for (int j = i+1; j < number_Scanned_Containers; j++) 
+        {     
+            if(containers[i].position > containers[j].position) 
+            {    
                 swap(&containers[i].x_Pos, &containers[j].x_Pos);
                 swap(&containers[i].y_Pos, &containers[j].y_Pos);
                 swap(&containers[i].color, &containers[j].color);
@@ -208,28 +197,8 @@ void sort_Containers()
            }     
         }     
     } 
-    // One by one move boundary of unsorted subarray
-    /*for (int i = 0; i < number_Scanned_Containers - 1; i++) 
-    {
-        //find the minimum element in unsorted array
-        min_idx = i;
-        int j;
-        for (j = i + 1; j < number_Scanned_Containers; j++) 
-        if (containers[j].position < containers[min_idx].position) 
-        {
-        min_idx = j;
- 
-        //swap the found minimum element
-        //with the first element
-        swap(&containers[min_idx].x_Pos, &containers[j].x_Pos);
-        swap(&containers[min_idx].y_Pos, &containers[j].y_Pos);
-        swap(&containers[min_idx].color, &containers[j].color);
-        swap(&containers[min_idx].position, &containers[j].position);
-        }
-    }*/
 }
 
-//save the found container
 void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort, char side)
 {
     if(check_If_There(x_Pos, y_Pos) == IS_THERE && number_Scanned_Containers) return;
@@ -254,13 +223,9 @@ void save_Container(int16_t x_Pos, int16_t y_Pos, int comPort, char side)
     } 
 }
 
-//function to check if the container is already saved
 int check_If_There(int16_t x_Pos, int16_t y_Pos)
 {
-    for(int i = 0; i < number_Scanned_Containers; i++)
-    {
-        if(x_Pos == containers[i].x_Pos && y_Pos == containers[i].y_Pos) return IS_THERE;
-    }
+    for(int i = 0; i < number_Scanned_Containers; i++) if(x_Pos == containers[i].x_Pos && y_Pos == containers[i].y_Pos) return IS_THERE;
     return IS_NOT_THERE;
 }
 
