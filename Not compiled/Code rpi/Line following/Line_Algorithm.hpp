@@ -44,6 +44,8 @@
         int just_Turned;
         int driving_State;
 
+        uint16_t wait_Samples_c;
+
         bool reached_Y_Min;
 
         private:
@@ -69,7 +71,6 @@
         uint16_t driving_Speed_c;
         uint16_t turning_Speed_c;
         uint16_t line_Samples_c;
-        uint16_t wait_Samples_c;
         uint16_t min_Side_Line_Change_c;
         uint16_t min_Mid_Line_Change_c;
         float error_Gain_c;

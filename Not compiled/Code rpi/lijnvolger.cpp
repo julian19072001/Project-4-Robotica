@@ -7,13 +7,17 @@
 #include <signal.h>
 #include <Communication.h>
 #include <Line_Algorithm.hpp>
+<<<<<<< HEAD
 #include "UI.hpp"
 
+=======
+#include <UI.hpp>
+>>>>>>> 1fc36bd5fb63d9af4303450c88644015a9029338
 
 #define COMPORT_DISTANCE         24
 #define COMPORT_LINE             25
-#define COMPORT_LEFT             27
-#define COMPORT_RIGHT            26
+#define COMPORT_LEFT             24
+#define COMPORT_RIGHT            24
 
 #define NUMBER_VALUES_DISTANCE   2
 #define NUMBER_VALUES_LINE       7
@@ -49,23 +53,22 @@ int main(int nArgc, char* aArgv[])
 {
   signal(SIGINT, exit_signal_handler);
 
-  if(nArgc != 2)
-  {
-    printf("Correcte input is: ./lijn (Aantal verwachte containers) {Vul 0 in om een onbepaalt aantal containers te scannen}.\n");
-    exit(-2);
-  }
-  
   int number_Of_Expected_Containers;
 
-  sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
+  if(nArgc != 2)
+  {
+    number_Of_Expected_Containers = 0;
+  }
 
   if(number_Of_Expected_Containers > MAX_NUMBER_OF_CONTAINERS) 
   {
+    sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
     printf("Je wilt meer containers scannen dan het maximale aantal: %d\n", MAX_NUMBER_OF_CONTAINERS);
     exit(-2);
   }
   else if(number_Of_Expected_Containers < 0)
   {
+    sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
     printf("Je kan geen negatief aantal containers scannen!\n");
     exit(-2);
   }
@@ -109,7 +112,9 @@ int main(int nArgc, char* aArgv[])
   {
     check_Line_Status(line_Data, MIN_SIDE_LINE_CHANGE, MIN_MID_LINE_CHANGE, LINE_SAMPLES);
   }
-  
+
+  Startup_UI();
+
   while(1) 
   { 
     if(commIsOpen1 && commIsOpen2)
@@ -156,7 +161,7 @@ void distance_Reading()
     if(follower.y_Max && follower.driving_State == STRAIGHT)
     {
         int distance_Result = GetNewXMegaData(COMPORT_DISTANCE, distance_Data, NUMBER_VALUES_DISTANCE);
-        if(distance_Result == VALIDDATA && !follower.just_Turned)
+        if(distance_Result == VALIDDATA && (!follower.just_Turned || follower.just_Turned > (follower.wait_Samples_c*2)))
         {
             if((!follower.x_Direction_Modifier && (follower.x_Pos != follower.x_Min && follower.x_Pos != follower.x_Max)) || (!follower.y_Direction_Modifier && (follower.y_Pos != follower.y_Min && follower.y_Pos != follower.y_Max)))
             {
