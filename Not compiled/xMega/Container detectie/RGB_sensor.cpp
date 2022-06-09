@@ -1,4 +1,4 @@
-#include "RGB_sensor_.hpp"
+#include "RGB_sensor.hpp"
 
 volatile uint16_t reset_diode_r, reset_diode_g, reset_diode_b;
 volatile int64_t tot_diode[3];
@@ -282,7 +282,7 @@ void RGB_sensor::leds_center(uint16_t color)
     {
         ((uint16_t)color >> 0) & 0xFF,
         ((uint16_t)color >> 8) & 0xFF,
-    }
+    };
 
     spi_transfer(bytes[1]);   
     spi_transfer(bytes[0]);  

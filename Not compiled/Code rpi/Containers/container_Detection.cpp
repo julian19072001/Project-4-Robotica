@@ -29,7 +29,7 @@ void check_Container_Left(uint8_t left_Distance, uint8_t max_Distance, int comPo
     left_Detected++;
     if(left_Detected < (MIN_DETECTED)) return;
     left_Detected = 0;
-    usleep(1500);
+    usleep(1350);
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos - 1;
@@ -68,6 +68,7 @@ void check_Container_Right(uint8_t right_Distance, uint8_t max_Distance, int com
     right_Detected++;
     if(right_Detected < MIN_DETECTED) return;
     right_Detected = 0;
+    usleep(200);
     if(y_Direction_Modifier == 1)
     {
         int16_t container_X_Pos = x_Pos;
