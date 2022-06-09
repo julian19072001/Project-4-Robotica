@@ -16,7 +16,7 @@
       #include "serialF0.h"
   }
 
-  #define max(a, b, c) ((a > b)? (a > c ? a : c) : (b > c ? b : c));
+  #define max(a, b, c) ((a > b)? (a > c ? a : c) : (b > c ? b : c))
   #define min(a, b, c) ((a < b)? (a < c ? a : c) : (b < c ? b : c))
 
   #define SPI_MOSI_bm     PIN5_bm 
@@ -29,7 +29,7 @@
   #define REMAP_TRUE     1
 
   #define SAMPLES        100
-  #define SAMPLE_AVR     5
+  #define SAMPLE_AVR     10
 
   #define LED_RED     0x9249
   #define LED_GREEN   0x2492

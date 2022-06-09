@@ -56,16 +56,15 @@ int main(int nArgc, char* aArgv[])
   {
     number_Of_Expected_Containers = 0;
   }
+  else sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
 
   if(number_Of_Expected_Containers > MAX_NUMBER_OF_CONTAINERS) 
   {
-    sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
     printf("Je wilt meer containers scannen dan het maximale aantal: %d\n", MAX_NUMBER_OF_CONTAINERS);
     exit(-2);
   }
   else if(number_Of_Expected_Containers < 0)
   {
-    sscanf(aArgv[1], "%d", &number_Of_Expected_Containers);
     printf("Je kan geen negatief aantal containers scannen!\n");
     exit(-2);
   }

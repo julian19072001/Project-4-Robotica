@@ -73,8 +73,8 @@ int main(void)
         HSV = RGB_to_HSV(&RGB);
 
         if (HSV.h <= 10) printf(" %d\n", RED);
-        if ((HSV.h > 10)    &&  (HSV.h <= 30))   printf(" %d\n", ORANGE);
-        if ((HSV.h > 30)   &&  (HSV.h <= 85))   printf(" %d\n", YELLOW);
+        if ((HSV.h > 10)    &&  (HSV.h <= 25))   printf(" %d\n", ORANGE);
+        if ((HSV.h > 25)   &&  (HSV.h <= 85))   printf(" %d\n", YELLOW);
         if ((HSV.h > 85)   &&  (HSV.h <= 150))  printf(" %d\n", GREEN);
         if ((HSV.h > 150)  &&  (HSV.h <= 220))  printf(" %d\n", CYAN);
         if ((HSV.h > 220)  &&  (HSV.h <= 265))  printf(" %d\n", BLUE);

@@ -10,7 +10,7 @@
 
     #define MAX_NUMBER_OF_CONTAINERS 25
 
-    #define MIN_DETECTED 14
+    #define MIN_DETECTED 16
     #define WAIT_FOR_COLOR 500000
 
     typedef struct Container

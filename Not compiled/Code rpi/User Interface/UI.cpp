@@ -177,11 +177,16 @@ void Update_grid(uint8_t pos, uint8_t colour, uint8_t x_max, uint8_t y_max)
 
     x_pos = pos % x_max;
     y_pos = pos / x_max;
+    if(x_pos < 11 && y_pos < 6)
+    {
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 8), ((x_pos * 13) + 3));
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 9), ((x_pos * 13) + 3));
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 10), ((x_pos * 13) + 3));
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 11), ((x_pos * 13) + 3));
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 12), ((x_pos * 13) + 3));
+        printf("\x1B[%d;%dH           ", ((y_pos * 7) + 13), ((x_pos * 13) + 3));
+    }
 
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 8), ((x_pos * 13) + 3));
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 9), ((x_pos * 13) + 3));
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 10), ((x_pos * 13) + 3));
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 11), ((x_pos * 13) + 3));
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 12), ((x_pos * 13) + 3));
-    printf("\x1B[%d;%dH           ", ((y_pos * 7) + 13), ((x_pos * 13) + 3));
+    printf("\x1B[0m");
+    fflush(stdout);
 }
